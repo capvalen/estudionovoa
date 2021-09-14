@@ -118,7 +118,10 @@ export default {
 	mounted(){
 		modalCrear = new bootstrap.Modal(document.getElementById('modalCrear'))
 		modalProcesos = new bootstrap.Modal(document.getElementById('modalProcesos'))
-		this.solicitarClientes()
+		this.solicitarClientes();
+		if( window.location.pathname =='/clientes/nuevo' ){
+			this.crearModal()
+		}
 	},
 	methods:{
 		crearModal(){
@@ -180,7 +183,7 @@ export default {
 						this.solicitarClientes();
 						this.$emit('mostrarToastBien', 'Cliente actualizado');
 					}else{
-						this.$emit('mostrarToastMal', 'Hubo un error al actualizar')
+						this.$emit('mostrarToastMal', 'Hubo un error al actualizar');
 					}
 			  })
 				.catch((error)=>{ console.log( error ); });

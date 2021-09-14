@@ -16,6 +16,13 @@ const routes = [
 		}
 	},
 	{
+		path: '/clientes/nuevo',
+		name: 'ClientesNuevo',
+		component: function () {
+			return import('../views/Clientes.vue')
+		}
+	},
+	{
 		path: '/procesos',
 		name: 'Procesos',
 		component: function () {
@@ -27,6 +34,13 @@ const routes = [
 		name: 'detalleProcesos',
 		component: function () {
 			return import('../views/DetalleProcesos.vue')
+		}
+	},
+	{
+		path: '/calendario',
+		name: 'Calendario',
+		component: function () {
+			return import('../views/Calendario.vue')
 		}
 	},
 ]

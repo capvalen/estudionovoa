@@ -71,21 +71,26 @@ export default {
 	},
 	methods:{
 		intentarLog(){
+			let that = this;
 			axios.post(this.nombreApi+'/validarUsuario.php', {userNick: this.userNick, userPass: this.userPass})
-			.then((response)=>{ response.data
-				if( response.data=='ok' ){
-					mostrarToastBien('Inicio correctamente');
+			.then((response)=>{ 
+				
+				if( Number.isInteger(response.data) ){
+					this.mostrarToastBien('Inicio correctamente');
 					this.loginIn=true;
 					localStorage.loginIn = this.loginIn;
+					localStorage.idUsuario = response.data;
 				}else{
-					mostrarToastMal('Datos erróneos');
+					this.mostrarToastMal('Datos erróneos');
 				}
 			})
 			.catch((error)=>{ console.log( error );});
 		
 		},
 		cerrarSesion(){
+			this.userNick=''; this.userPass='';
 			this.loginIn=false;
+			localStorage.removeItem('idUsuario');
 			localStorage.loginIn = this.loginIn;
 		},
 		mostrarToastBien(texto){ this.mensaje= texto; toastOk.show(); },

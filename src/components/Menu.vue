@@ -16,6 +16,9 @@
 			<router-link class="fs-5 text-decoration-none my-2" to="/ventas">
 				<i class="bi bi-tag"></i> <span class="ps-3">Caja</span>
 			</router-link>
+			<router-link class="fs-5 text-decoration-none my-2" to="/calendario">
+				<i class="bi bi-calendar-week"></i> <span class="ps-3">Calendario</span>
+			</router-link>
 			<router-link class="fs-5 text-decoration-none my-2" to="/clientes">
 				<i class="bi bi-person-bounding-box"></i> <span class="ps-3">Clientes</span>
 			</router-link>
