@@ -30,6 +30,13 @@ const routes = [
 		}
 	},
 	{
+		path: '/caja',
+		name: 'Caja',
+		component: function () {
+			return import('../views/Caja.vue')
+		}
+	},
+	{
 		path: '/procesos/detalle/:id',
 		name: 'detalleProcesos',
 		component: function () {

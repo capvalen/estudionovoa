@@ -9,7 +9,7 @@
 					</div>
 					<div id="contenido" class="">
 			
-						<router-view ref="routerVista" @cerrarSesion='cerrarSesion()' @mostrarToastBien="mostrarToastBien" @mostrarToastMal="mostrarToastMal" ></router-view>
+						<router-view ref="routerVista" @cerrarSesion='cerrarSesion()' @mostrarToastBien="mostrarToastBien" @mostrarToastMal="mostrarToastMal" :monedas="monedas" ></router-view>
 			
 					</div>
 				</section>
@@ -66,7 +66,7 @@ var tostadaBuena, tostadaMala, toastOk, toastMal
 export default {
 	data(){
 		return {
-			loginIn:false, userNick:'', userPass:'', mensaje:''
+			loginIn:false, userNick:'', userPass:'', mensaje:'', monedas:[]
 		}
 	},
 	methods:{
@@ -74,12 +74,13 @@ export default {
 			let that = this;
 			axios.post(this.nombreApi+'/validarUsuario.php', {userNick: this.userNick, userPass: this.userPass})
 			.then((response)=>{ 
-				
-				if( Number.isInteger(response.data) ){
+				console.log( response.data );
+				if( Number.isInteger(response.data.id) ){
 					this.mostrarToastBien('Inicio correctamente');
 					this.loginIn=true;
 					localStorage.loginIn = this.loginIn;
-					localStorage.idUsuario = response.data;
+					localStorage.idUsuario = response.data.id;
+					localStorage.nombreUsuario = response.data.nombre;
 				}else{
 					this.mostrarToastMal('Datos erróneos');
 				}
@@ -95,6 +96,13 @@ export default {
 		},
 		mostrarToastBien(texto){ this.mensaje= texto; toastOk.show(); },
 		mostrarToastMal(texto){ this.mensaje= texto; toastMal.show(); },
+		cargarMonedas(){
+			axios.post(this.nombreApi+'/listarMonedas.php')
+			.then((response)=>{ //console.log( response.data );
+				this.monedas=response.data;
+			})
+			.catch((error)=>{ console.log( error );});
+		}
 		
 		
 	},
@@ -108,6 +116,7 @@ export default {
 		}else{
 			this.loginIn=false;
 		}
+		this.cargarMonedas();
 		
 	},
 	components:{

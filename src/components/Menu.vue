@@ -13,7 +13,7 @@
 			<router-link class="fs-5 text-decoration-none my-2" to="/">
 				<i class="bi bi-house-door"></i> <span class="ps-3">Inicio</span>
 			</router-link>
-			<router-link class="fs-5 text-decoration-none my-2" to="/ventas">
+			<router-link class="fs-5 text-decoration-none my-2" to="/caja">
 				<i class="bi bi-tag"></i> <span class="ps-3">Caja</span>
 			</router-link>
 			<router-link class="fs-5 text-decoration-none my-2" to="/calendario">

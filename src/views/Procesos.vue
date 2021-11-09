@@ -46,7 +46,7 @@
 						<h5 class="modal-title">Crear nuevo proceso</h5>
 						<label class="my-2"><small><strong>Ubique al cliente</strong></small></label>
 						<div class="input-group mb-3">
-							<button class="btn btn-outline-secondary" type="button" id="button-addon1"><i class="bi bi-cloud-plus-fill"></i> Nuevo</button>
+							<button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="irA()"><i class="bi bi-cloud-plus-fill"></i> Nuevo</button>
 							<input type="text" class="form-control" placeholder="Buscar cliente por Dni o apellidos" aria-label="Example text with button addon" aria-describedby="button-addon1" @keyup.enter="buscarCliente" v-model="clienteBuscar">
 							<button class="btn btn-outline-primary" @click="buscarCliente" type="button" id="button-addon2"><i class="bi bi-search"></i></button>
 						</div>
@@ -221,6 +221,10 @@ export default {
 		divCli= document.getElementById('divClienteUbicado')
 	},
 	methods: {
+		irA(){
+			modalCrear.hide();
+			this.$router.push({ path: '/clientes/nuevo' })
+		},
 		crearModal(){
 			modalCrear.show()
 		},
@@ -276,6 +280,7 @@ export default {
 			
 
 			if(this.evaluarCampos()){
+				var that = this;
 				
 				axios.post(this.nombreApi+'/insertarProceso.php', {
 					cliElegido: this.cliElegido, 
@@ -288,9 +293,9 @@ export default {
 					fecha: this.fecha,
 					idUsuario: localStorage.idUsuario
 				})
-				.then((response)=>{ //console.log( response.data );
+				.then((response)=>{ console.log( response.data );
 					if(Number.isInteger(response.data)){
-						this.codigo=response.data;
+						that.codigo=response.data;
 						modalCrear.hide();
 						modalRegistrado.show();
 					}
