@@ -9,32 +9,15 @@
 		</div>
 
 		<div id="resultadoProcesos">
-				<div class="py-2 px-4 border-bottom" >
-					<span class="float-end"><small>hace 2 horas</small></span>
-					<router-link :to="{name:'detalleProcesos', params: {id: 'faf5161s86q1'}}" tag="span" class="text-decoration-none">
-						<p><i class="bi bi-box-arrow-in-right"></i> <strong>Prueba de sangre para control de embarazo</strong></p>
-					</router-link>
-					<p>De: <strong>Pilar Mateo Quincho</strong></p>
-					<p>Estado: Registrado</p>
-				</div>
-			<div class="py-2 px-4 border-bottom" @click="editarTodo()">
-				<span class="float-end"><small>hace 3 horas</small></span>
-				<p><i class="bi bi-box-arrow-in-right"></i> <strong>Amenazas y lesiones leves</strong></p>
-				<p>De: <strong>Maximiliano Gregorio Zapata</strong></p>
-				<p>Estado: Expediente aceptado en el estudio</p>
+			<div class="py-2 px-4 border-bottom" v-for="proceso in procesos" :key="proceso.id">
+				<span class="float-end"><small>{{fechaHace(proceso.registrado)}}</small></span>
+				<router-link :to="{name:'detalleProcesos', params: {id: proceso.id}}" tag="span" class="text-decoration-none">
+					<p class="text-primary"><i class="bi bi-box-arrow-in-right"></i> <strong class="text-capitalize">{{proceso.caso}}</strong></p>
+				</router-link>
+				<p>De: <strong class="text-capitalize">{{proceso.nomCliente}}</strong></p>
+				<p>Estado: <span class="text-muted">{{proceso.estadoProceso}}</span></p>
 			</div>
-			<div class="py-2 px-4 border-bottom" @click="editarTodo()">
-				<span class="float-end"><small>ayer</small></span>
-				<p><i class="bi bi-box-arrow-in-right"></i> <strong>Abuso sexual infantil</strong></p>
-				<p>De: <strong>Waldo Javier Norte</strong></p>
-				<p>Estado: Adjunto la denuncia policial</p>
-			</div>
-			<div class="py-2 px-4 border-bottom" @click="editarTodo()">
-				<span class="float-end"><small>hace 2 días</small></span>
-				<p><i class="bi bi-box-arrow-in-right"></i> <strong>Custodia de hijos</strong></p>
-				<p>De: <strong>Pamela Paola Urichi Perca</strong></p>
-				<p>Estado: Generado acta de denuncia</p>
-			</div>
+		
 		
 		</div>
 
@@ -74,7 +57,7 @@
 						
 						<div class="mb-3" v-if="chkDocumentos">
 							<label for="formFile" class="form-label">Buscar archivo</label>
-							<input class="form-control form-control-sm" ref="formFile" type="file" id="formFile">
+							<input class="form-control form-control-sm" ref="archivoFile" type="file" id="formFile" @change="cargarArchivo()" accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
 						</div>
 				
 						<label for="" class="my-2"><small><strong>Datos del pago:</strong></small></label>
@@ -171,15 +154,11 @@
 		<div class="modal-content">
 			<div class="modal-body">
 				<div class="d-flex justify-content-end pb-0">
-					
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					
 				</div>
 				<p class="mb-0 mt-1 text-center text-muted">Código de pago:</p>
 				<h4 class="text-center text-primary display-5">CS-{{codigo}}</h4>
-				<p class="text-center text-muted">Se realizó el registro para el Cliente: <strong>{{nombreELegido}}</strong>, por el caso: <strong>{{caso}}</strong>. En {{numCuotas}} pagos a partir de {{fechaLatam(fecha)}} </p>
-				
-				
+				<p class="text-center text-muted">Se realizó el registro para el Cliente: <strong>{{nombreELegido}}</strong>. <br/> Por el caso: <strong>{{caso}}</strong>. En {{numCuotas}} <span v-if="numCuotas==1">pago</span><span v-else>pagos</span> <span v-if="fecha!=null && fecha!=''">a partir de {{fechaLatam(fecha)}}</span> </p>
 			</div>
 			
 		</div>
@@ -197,7 +176,7 @@
 		font-size: 0.75em;
 	}
 	#resultadoProcesos div:hover{
-		cursor: pointer;
+		/* cursor: pointer; */
 		background-color: whitesmoke;
 	}
 	
@@ -211,14 +190,21 @@ export default {
 		return {
 			fecha: null, clienteBuscar:'', dniElegido:'', nombreELegido:'', cliElegido:'',
 			elegidos:[], numCuotas: null, plazos:null, chkDocumentos:false, precio:0,
-			caso:'', antecedentes:'', codigo:null
+			caso:'', antecedentes:'', codigo:null, archivo:'',
+			procesos:[]
 		}
 	},
 	mounted(){
+		moment.locale('es');
 		modalCrear = new bootstrap.Modal(document.getElementById('modalCrear'))
 		modalVarios = new bootstrap.Modal(document.getElementById('modalVarios'))
 		modalRegistrado = new bootstrap.Modal(document.getElementById('modalRegistrado'))
-		divCli= document.getElementById('divClienteUbicado')
+		divCli= document.getElementById('divClienteUbicado');
+		axios.post(this.nombreApi + '/listarTodosProcesosActivos.php')
+		.then((response)=>{ //console.log( response.data );
+			this.procesos = response.data;
+		})
+		.catch((error)=>{ console.log( error );});
 	},
 	methods: {
 		irA(){
@@ -276,10 +262,49 @@ export default {
 				divPagos.classList.remove('d-none')
 			}
 		},
+		cargarArchivo(){
+			this.archivo = this.$refs.archivoFile.files[0];
+		},
 		crearProceso(){
+			let nombreSubida='', nombreRuta='';
+			let that = this;
 			
-
 			if(this.evaluarCampos()){
+				if(this.chkDocumentos){
+					if( document.getElementById("formFile").files.length==0 ){
+						this.mandarDatos(nombreSubida, nombreRuta);
+					}else{
+						let formData = new FormData();
+						formData.append('archivo', this.archivo);
+						formData.append('ruta', this.rutaDocs);
+						axios.post(this.nombreApi+'subidaAdjunto.php', formData, {
+							headers: {
+								'Content-Type' : 'multipart/form-data'
+							}
+						}).then( function (response){
+							console.log( response.data );
+							if( response.data =='Error subida' ){
+								nombreSubida='';
+								nombreRuta='';
+								that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+								console.log( 'err1' );
+							}else{ //subió bien
+								nombreSubida=document.getElementById("formFile").files[0].name;
+								nombreRuta = response.data;
+								that.mandarDatos(nombreSubida, nombreRuta);
+							}
+		
+						}).catch(function(){
+							console.log( 'err2' );
+							that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+						})
+					}
+				}else{
+					this.mandarDatos(nombreSubida, nombreRuta);
+				}
+			}
+		},
+		mandarDatos(nombreSubida, nombreRuta ){
 				var that = this;
 				
 				axios.post(this.nombreApi+'/insertarProceso.php', {
@@ -291,7 +316,8 @@ export default {
 					numCuotas:this.numCuotas,
 					plazos: this.plazos,
 					fecha: this.fecha,
-					idUsuario: localStorage.idUsuario
+					idUsuario: localStorage.idUsuario,
+					nombreSubida, nombreRuta
 				})
 				.then((response)=>{ console.log( response.data );
 					if(Number.isInteger(response.data)){
@@ -304,7 +330,6 @@ export default {
 
 				this.$emit('mostrarToastBien', 'Proceso Guardado');
 
-			}
 		},
 		evaluarCampos(){
 			//console.log( document.getElementById('floPagos').value );
@@ -324,9 +349,11 @@ export default {
 			
 		},
 		fechaLatam(fe){
-
-			
 			return moment(fe).format('DD/MM/YYYY');
+		},
+		fechaHace(fe){
+			return moment(fe).fromNow();
+			
 		}
 	},
 }

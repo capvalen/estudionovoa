@@ -50,6 +50,20 @@ const routes = [
 			return import('../views/Calendario.vue')
 		}
 	},
+	{
+		path: '/usuarios',
+		name: 'Usuarios',
+		component: function () {
+			return import('../views/Usuarios.vue')
+		}
+	},
+	{
+		path: '/reportes',
+		name: 'Reportes',
+		component: function () {
+			return import('../views/Reportes.vue')
+		}
+	},
 ]
 
 const router = createRouter({

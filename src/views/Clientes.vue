@@ -69,7 +69,7 @@
 						<h5 class="modal-title mb-2">Detalle de procesos abiertos</h5>
 						
 						<div class="list-group">
-						  <a href="#" class="list-group-item list-group-item-action " aria-current="true" v-for="(caso, index) in casosCliente" :key="caso.id">
+						  <div class="list-group-item list-group-item-action " aria-current="true" v-for="(caso, index) in casosCliente" :key="caso.id" @click="irA(caso.id)">
 						    <div class="d-flex w-100 justify-content-between">
 						      <h5 class="mb-1">{{index+1}}. {{caso.caso}}</h5>
 						      <small>{{fechaDesdeHoy(caso.fecha)}}</small>
@@ -77,8 +77,8 @@
 								<p class="mb-1">Estado: <span class="text-success">En revisión</span></p>
 						    <small class="text-muted">Registrador: {{caso.nomUsuario}}</small>
 						    
-						  </a>
-							<a href="#" class="list-group-item list-group-item-action " aria-current="true" v-if="casosCliente.length==0" >
+						  </div>
+							<div class="list-group-item list-group-item-action " aria-current="true" v-if="casosCliente.length==0" >
 						    <div class="d-flex w-100 justify-content-between">
 						      <h5 class="mb-1">No hay casos asignados al cliente</h5>
 						      
@@ -86,7 +86,7 @@
 								<p class="mb-1">Agrege uno en la sección de procesos</p>
 						    <small class="text-muted">Suerte!</small>
 						    
-						  </a>
+						  </div>
 						  
 						</div>
 
@@ -227,6 +227,10 @@ export default {
 		},
 		fechaDesdeHoy(fecha){
 			return moment(fecha).fromNow();
+		},
+		irA(id){
+			modalProcesos.hide();
+			this.$router.push({ name: 'detalleProcesos', params: { id } })
 		}
 	}
 }
@@ -248,4 +252,5 @@ export default {
 	#modalProcesos h5{
 		font-size: 1rem;
 	}
+	.list-group-item:hover{cursor:pointer;}
 </style>
