@@ -38,6 +38,18 @@
 							<textarea class="form-control" placeholder="Leave a comment here" id="floDetalles" name="detalles" style="height: 100px"></textarea>
 							<label for="floDetalles">Detalles</label>
 						</div>
+						<label class="mt-2" for="floDetalles">Abogado responsable</label>
+						<select class="form-select" id="sltAbogados">
+						</select>
+						<label class="mt-2" for="floDetalles">Horario:</label>
+						<div class="row row-cols-2">
+							<div class="col">
+								<input class="form-control" type="time" id="horaIni" >
+							</div>
+							<div class="col">
+								<input class="form-control" type="time" id="horaFin" >
+							</div>
+						</div>
 						<label for="exampleColorInput" class="form-label mt-3">Color</label>
 						<input type="color" class="form-control form-control-color" name="color" value="#563d7c" title="Choose your color">
 		        
@@ -83,7 +95,8 @@
 			
 			
       document.addEventListener('DOMContentLoaded', function() {
-				var nombreApi = "http://localhost/novoaApi";
+				var nombreApi = "https://intranet.novoa-medicos-abogados.com/api";
+				// var nombreApi = "http://localhost/novoaApi";
 				var modalAlimentar, modalDetalles, asunto, detalles, comienza, termina, formulario, mesActual, añoActual, todo, indexActual, idActual;
 
 				modalAlimentar = new bootstrap.Modal(document.getElementById('modalAlimentar'));
@@ -92,11 +105,28 @@
 				asunto = document.getElementById('asunto');
 				detalles = document.getElementById('detalles');
 				var ahora = new Date();
+				var horaIni = document.getElementById('horaIni');
+				var horaFin = document.getElementById('horaFin');
 				
 				mesActual = parseInt(ahora.getMonth())+1;
 				añoActual = parseInt(ahora.getFullYear());
+				horaIni.value= ahora.getHours()+':'+ (ahora.getMinutes()<10?'0':'') + ahora.getMinutes();
+				horaFin.value= (ahora.getHours()+1)+':'+ (ahora.getMinutes()<10?'0':'') + ahora.getMinutes();
 
 				function pedirDatos(){
+					//Pedimos abogados:
+					fetch(nombreApi + '/listarUsuarios.php', {
+						method:'POST'
+					})
+					.then(res=> res.json())
+					.then( respuesta => { console.log( respuesta );
+						respuesta.forEach(abogado=>{
+							if(abogado.idTipo==3){
+								document.getElementById('sltAbogados').innerHTML+=`
+									<option value="${abogado.id}">${abogado.apellidos} ${abogado.nombres}</option>`;
+							}
+						})
+					})
 
 					var fechas = new FormData();
 					fechas.append('mes', mesActual + "-" + añoActual)
@@ -133,6 +163,9 @@
 					
 					datos.append('comienza', comienza );
 					datos.append('termina', termina );
+					datos.append('abogado', document.getElementById('sltAbogados').value );
+					datos.append('horaIni', horaIni.value );
+					datos.append('horaFin', horaFin.value );
 					
 					fetch( nombreApi +'/insertarCalendario.php', {
 						method: 'POST',

@@ -122,7 +122,7 @@ export default {
 		modalNuevoEstado = new bootstrap.Modal(document.getElementById('modalNuevoEstado'))
 		//Muestra el ID por Router
 		//console.log( this.$route.params.id );
-		axios.post(this.nombreApi + 'solicitarCabeceraProceso.php', { id: this.$route.params.id})
+		axios.post(this.nombreApi + '/solicitarCabeceraProceso.php', { id: this.$route.params.id})
 		.then((response)=>{ console.log( response.data );
 			let datos = response.data
 			this.titulo = datos.caso;
@@ -138,7 +138,7 @@ export default {
 	},
 	methods:{
 		cargarIteraciones(){
-			axios.post(this.nombreApi+'mostrarIteracionesxID.php', { idProceso: this.$route.params.id})
+			axios.post(this.nombreApi+'/mostrarIteracionesxID.php', { idProceso: this.$route.params.id})
 			.then((response)=>{ console.log( response.data );
 				this.iteraciones = response.data;
 			})
@@ -163,7 +163,7 @@ export default {
 			this.nArchivo = this.$refs.archivo.files[0];
 		},
 		verPagos(){
-			axios.post(this.nombreApi+'verPagosXId.php', { id: this.$route.params.id})
+			axios.post(this.nombreApi+'/verPagosXId.php', { id: this.$route.params.id})
 			.then((response)=>{ console.log( response.data );
 				this.todosPagos = response.data;
 			})
@@ -190,8 +190,8 @@ export default {
 
 					let formData = new FormData();
 					formData.append('archivo', this.nArchivo);
-					formData.append('ruta', this.rutaDocs);
-					axios.post(this.nombreApi+'subidaAdjunto.php', formData, {
+					formData.append('ruta', this.rutaDocs ); //this.rutaDocs
+					axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
 						headers: {
 							'Content-Type' : 'multipart/form-data'
 						}
@@ -220,7 +220,7 @@ export default {
 		},
 		mandarDatos(nomArchivo, ruta){
 			
-			axios.post(this.nombreApi + 'insertarIteracion.php', {
+			axios.post(this.nombreApi + '/insertarIteracion.php', {
 				idProceso: this.$route.params.id,
 				idUsuario: localStorage.idUsuario,
 				titulo: this.nAsunto,
@@ -252,7 +252,7 @@ export default {
 		},
 		cambiarEstado(){
 			if( document.getElementById('floEstado').value!="-1"){
-				axios.post(this.nombreApi + 'cambiarEstadoProceso.php', { idProceso: this.$route.params.id,
+				axios.post(this.nombreApi + '/cambiarEstadoProceso.php', { idProceso: this.$route.params.id,
 					estado: document.getElementById('floEstado').value
 				})
 				.then((response)=>{ //console.log( response.data );

@@ -276,8 +276,8 @@ export default {
 					}else{
 						let formData = new FormData();
 						formData.append('archivo', this.archivo);
-						formData.append('ruta', this.rutaDocs);
-						axios.post(this.nombreApi+'subidaAdjunto.php', formData, {
+						formData.append('ruta', this.rutaDocs );
+						axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
 							headers: {
 								'Content-Type' : 'multipart/form-data'
 							}
