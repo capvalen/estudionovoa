@@ -7,7 +7,7 @@
 					<h5>Estado: <span class="text-primary">{{estadoProceso}}</span> <small class="btn btn-outline-primary border px-2 py-1" @click="abrirModalEstado()"><i class="bi bi-broadcast-pin"></i> Cambiar estado</small></h5>
 					<p class="mb-0"><strong>Antecedentes</strong></p>
 					<div class="my-2" v-html="casoPrevio"></div>
-					<p v-if="ruta!=''"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+ruta"> <strong>{{documento}}</strong></a></p>
+					<p v-for="documento in documentos" :key="documento.id"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+documento.nombreRuta"> <strong>{{documento.nombreSubida}}</strong></a></p>
 						<p class="text-muted ">Registrado: {{fechaLatam(fechaInicial)}} por <span class="text-capitalize">{{usuario}}</span>.</p>
 				</div>
 			</div>
@@ -113,7 +113,7 @@ export default {
 	data(){ return {
 		titulo: '', casoPrevio:'', ruta:'', documento:'', fechaInicial:'', usuario:'',
 		pagos:false, todosPagos:[], iteraciones:[],
-		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:''
+		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[]
 		}
 	},
 	mounted(){
@@ -127,8 +127,8 @@ export default {
 			let datos = response.data
 			this.titulo = datos.caso;
 			this.casoPrevio = datos.antecedentes.replace(/(?:\r\n|\r|\n)/g, '<br />');
-			this.ruta = datos.rutaDocumento;
-			this.documento = datos.documento;
+			
+			this.documentos = JSON.parse(datos.documento);
 			this.fechaInicial = datos.registrado;
 			this.usuario = datos.nomUsuario;
 			this.estadoProceso = datos.estadoProceso;

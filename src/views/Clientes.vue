@@ -17,7 +17,7 @@
 					</span>
 					<strong>{{cliente.razon_social}}</strong></p>
 				<p><span v-if="cliente.ruc.length>8">R.U.C.</span><span v-else>D.N.I.</span>: <strong>{{cliente.ruc}}</strong> | <small>Celular: <span>{{cliente.celular}}</span></small></p>
-				<p>Tiene <strong class="text-danger">{{cliente.numProcesos}}</strong> casos activos <span id="spanVer" @click.stop="verCaso(cliente.id)" class="text-primary"><i class="bi bi-eye"></i></span>
+				<p>Tiene <strong class="text-danger">{{cliente.numProcesos}}</strong> casos activos <span id="spanVer" @click.stop="verCaso(cliente.id)" class="text-primary"><i class="bi bi-chat-right-dots-fill"></i></span>
 					<!-- <span class="text-success float-end" @click.stop="sumarCaso(1)"><i class="bi bi-bookmark-plus"></i> </span> -->
 				</p>
 			</div>
@@ -71,11 +71,11 @@
 						<div class="list-group">
 						  <div class="list-group-item list-group-item-action " aria-current="true" v-for="(caso, index) in casosCliente" :key="caso.id" @click="irA(caso.id)">
 						    <div class="d-flex w-100 justify-content-between">
-						      <h5 class="mb-1">{{index+1}}. {{caso.caso}}</h5>
+						      <h5 class="mb-1 text-capitalize">{{index+1}}. {{caso.caso}}</h5>
 						      <small>{{fechaDesdeHoy(caso.fecha)}}</small>
 						    </div>
 								<p class="mb-1">Estado: <span class="text-success">En revisión</span></p>
-						    <small class="text-muted">Registrador: {{caso.nomUsuario}}</small>
+						    <small class="text-muted text-capitalize">Registrador: {{caso.nomUsuario}}</small>
 						    
 						  </div>
 							<div class="list-group-item list-group-item-action " aria-current="true" v-if="casosCliente.length==0" >

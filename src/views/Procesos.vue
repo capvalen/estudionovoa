@@ -40,7 +40,7 @@
 						<label class="mb-2"><strong><small>Datos del Caso:</small></strong></label>
 
 						<div class="form-floating mb-3">
-							<input type="text" class="form-control" id="floCaso" placeholder="razon" v-model="caso">
+							<input type="text" class="form-control" id="floCaso" placeholder="razon" v-model="caso" autocomplete="off">
 							<label for="floCaso">Caso</label>
 						</div>
 						<div class="form-floating mb-3">
@@ -55,9 +55,18 @@
 						  </label>
 						</div>
 						
+						
 						<div class="mb-3" v-if="chkDocumentos">
-							<label for="formFile" class="form-label">Buscar archivo</label>
-							<input class="form-control form-control-sm" ref="archivoFile" type="file" id="formFile" @change="cargarArchivo()" accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
+							<div class="input-group mb-3">
+							  <input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
+							  <button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+							</div>
+
+							<div v-if="documentos.length>=1">
+								<p class="mb-0 " v-for="documento in documentos" :key="documento.id"><span class="text-danger"><i class="bi bi-file-earmark-excel"></i> </span> <a :href="'documentos/'+documento.nombreRuta">{{documento.nombreSubida}}</a></p>
+							</div>
+
+							
 						</div>
 				
 						<label for="" class="my-2"><small><strong>Datos del pago:</strong></small></label>
@@ -190,7 +199,7 @@ export default {
 		return {
 			fecha: null, clienteBuscar:'', dniElegido:'', nombreELegido:'', cliElegido:'',
 			elegidos:[], numCuotas: null, plazos:null, chkDocumentos:false, precio:0,
-			caso:'', antecedentes:'', codigo:null, archivo:'',
+			caso:'', antecedentes:'', codigo:null, archivo:'', documentos:[],
 			procesos:[]
 		}
 	},
@@ -200,13 +209,17 @@ export default {
 		modalVarios = new bootstrap.Modal(document.getElementById('modalVarios'))
 		modalRegistrado = new bootstrap.Modal(document.getElementById('modalRegistrado'))
 		divCli= document.getElementById('divClienteUbicado');
-		axios.post(this.nombreApi + '/listarTodosProcesosActivos.php')
-		.then((response)=>{ //console.log( response.data );
-			this.procesos = response.data;
-		})
-		.catch((error)=>{ console.log( error );});
+		
+		this.listarProcesosActivos();
 	},
 	methods: {
+		listarProcesosActivos(){
+			axios.post(this.nombreApi + '/listarTodosProcesosActivos.php')
+			.then((response)=>{ //console.log( response.data );
+				this.procesos = response.data;
+			})
+			.catch((error)=>{ console.log( error );});
+		},
 		irA(){
 			modalCrear.hide();
 			this.$router.push({ path: '/clientes/nuevo' })
@@ -262,73 +275,83 @@ export default {
 				divPagos.classList.remove('d-none')
 			}
 		},
-		cargarArchivo(){
-			this.archivo = this.$refs.archivoFile.files[0];
-		},
 		crearProceso(){
 			let nombreSubida='', nombreRuta='';
-			let that = this;
+			
 			
 			if(this.evaluarCampos()){
-				if(this.chkDocumentos){
-					if( document.getElementById("formFile").files.length==0 ){
 						this.mandarDatos(nombreSubida, nombreRuta);
+				/* if(this.chkDocumentos){
+					if( document.getElementById("formFile").files.length==0 ){
 					}else{
-						let formData = new FormData();
-						formData.append('archivo', this.archivo);
-						formData.append('ruta', this.rutaDocs );
-						axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
-							headers: {
-								'Content-Type' : 'multipart/form-data'
-							}
-						}).then( function (response){
-							console.log( response.data );
-							if( response.data =='Error subida' ){
-								nombreSubida='';
-								nombreRuta='';
-								that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
-								console.log( 'err1' );
-							}else{ //subió bien
-								nombreSubida=document.getElementById("formFile").files[0].name;
-								nombreRuta = response.data;
-								that.mandarDatos(nombreSubida, nombreRuta);
-							}
-		
-						}).catch(function(){
-							console.log( 'err2' );
-							that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
-						})
+						
 					}
 				}else{
 					this.mandarDatos(nombreSubida, nombreRuta);
-				}
+				} */
 			}
 		},
-		mandarDatos(nombreSubida, nombreRuta ){
-				var that = this;
-				
-				axios.post(this.nombreApi+'/insertarProceso.php', {
-					cliElegido: this.cliElegido, 
-					caso: this.caso,
-					antecedentes: this.antecedentes,
-					floPagos: document.getElementById('floPagos').value,
-					precio: this.precio,
-					numCuotas:this.numCuotas,
-					plazos: this.plazos,
-					fecha: this.fecha,
-					idUsuario: localStorage.idUsuario,
-					nombreSubida, nombreRuta
-				})
-				.then((response)=>{ console.log( response.data );
-					if(Number.isInteger(response.data)){
-						that.codigo=response.data;
-						modalCrear.hide();
-						modalRegistrado.show();
-					}
-				})
-				.catch((error)=>{ console.log( error );});
+		subirANube(){
+			var that = this;
+			this.archivo = this.$refs.archivoFile.files[0];
+			if(document.getElementById("formFile").files.length>0){
+				console.log( 'deberia subir a la nube' );
 
-				this.$emit('mostrarToastBien', 'Proceso Guardado');
+			let formData = new FormData();
+			formData.append('archivo', this.archivo);
+			formData.append('ruta', this.rutaDocs );
+			axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+				headers: {
+					'Content-Type' : 'multipart/form-data'
+				}
+			}).then( function (response){
+				console.log( response.data );
+				if( response.data =='Error subida' ){
+					nombreSubida='';
+					nombreRuta='';
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+					console.log( 'err1' );
+				}else{ //subió bien
+					that.documentos.push({
+						nombreSubida : document.getElementById("formFile").files[0].name,
+						nombreRuta : response.data
+					});
+				}
+
+			}).catch(function(ero){
+				console.log( 'err2' + ero );
+				that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+			})
+		}
+
+		},
+		mandarDatos(nombreSubida, nombreRuta ){
+			var that = this;
+			
+			axios.post(this.nombreApi+'/insertarProceso.php', {
+				cliElegido: this.cliElegido, 
+				caso: this.caso,
+				antecedentes: this.antecedentes,
+				floPagos: document.getElementById('floPagos').value,
+				precio: this.precio,
+				numCuotas:this.numCuotas,
+				plazos: this.plazos,
+				fecha: this.fecha,
+				idUsuario: localStorage.idUsuario,
+				nombreSubida, nombreRuta,
+				documentos: this.documentos
+			})
+			.then((response)=>{ console.log( response.data );
+				if(Number.isInteger(response.data)){
+					that.codigo=response.data;
+					modalCrear.hide();
+					modalRegistrado.show();
+					that.listarProcesosActivos();
+				}
+			})
+			.catch((error)=>{ console.log( error );});
+
+			this.$emit('mostrarToastBien', 'Proceso Guardado');
 
 		},
 		evaluarCampos(){

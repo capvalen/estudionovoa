@@ -1,16 +1,23 @@
 <template>
 	<div class="">
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 border-bottom">
-			<h4 >Caja <small style="font-size: .675em;color: #9a9a9a;">Abierta por: {{quienAbrio}}</small></h4>
+			<div class="d-flex">
+				<h4 class="mb-0" >Caja </h4>
+				<button class="btn btn-outline-success ms-2" @click="buscarCajas"><i class="bi bi-search"></i> Buscar fechas</button>
+				
+				
+			</div>
 			<div class="d-flex">
 				<button class="btn btn-outline-secondary " v-if="!cajaAbierta" @click="abrirCaja"><i class="bi bi-pin-angle"></i> Abrir Caja</button>
 				<button class="btn btn-outline-secondary " v-else @click="porCerrarCaja"><i class="bi bi-pin-angle"></i> Cerrar Caja</button>
 			</div>
 		</div>
 		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1">
-			<p class="mb-0 text-muted"><i class="bi bi-calendar2-check"></i> Aperturado el <span class=" text-capitalize">{{(fechaAbrio)}}</span>  </p>
+			<p class="mb-0 text-muted"><i class="bi bi-person"></i> Abierta por: <span class="text-capitalize">{{quienAbrio}}</span></p>
+			<p class="mb-0 text-muted"><i class="bi bi-calendar2-check"></i> Aperturado el <span class=" text-capitalize">{{(fechaAbrio)}}</span> </p>
+
 		</div>
-		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1">
+		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1 && cajaActual">
 			<div class="d-flex justify-content-between  ">
 				<button class="btn btn-outline-primary mx-2" type="button" @click="nuevaEntrada()"><i class="bi bi-cart-plus"></i> Nueva entrada S/</button>
 				<button class="btn btn-outline-danger mx-2" type="button" @click="nuevaSalida()"><i class="bi bi-cart-dash"></i> Nueva salida S/</button>
@@ -108,7 +115,7 @@
 						<label for="floMonto">Monto</label>
 					</div>
 					<div class="form-floating mb-3">
-						<input type="text" class="form-control text-capitalize" id="floDetalle" placeholder=" " v-model="eDetalle">
+						<input type="text" class="form-control text-capitalize" id="floDetalle" placeholder=" " v-model="eDetalle" autocomplete="off">
 						<label for="floDetalle">Detalle</label>
 					</div>
 				</div>
@@ -201,13 +208,55 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Modal para buscar cajas -->
+	<div class="modal fade" id="modalBuscarCajas" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-body">
+					<div class="d-flex justify-content-between pb-3">
+						<h5 class="modal-title" id="staticBackdropLabel">Buscar cajas</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div>
+						<p class="mb-0">Seleccione la fecha que desea buscar:</p>
+						<input type="date" class="form-control" @change="apilarCajas()" v-model="fechaBuscar">
+					</div>
+					<table class="table table-hover" v-if="muchasCajas.length>0">
+						<thead>
+							<tr>
+								<th>N°</th>
+								<th>Fecha</th>
+								<th>Aperturado por</th>
+								<th>Abre con</th>
+								<th>Cierra con</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="(cajas, index) in muchasCajas" :key="cajas.id" @click="verCajaExacta(cajas.id)">
+								<td>{{index+1}}</td>
+								<td>{{fechaLatam(cajas.registro)}} 
+									<span v-if="cajas.obsApertura!=''"><br>{{cajas.obsApertura}}</span>
+									<span v-if="cajas.obsCierre!=''"><br>{{cajas.obsCierre}}</span></td>
+								<td class="text-capitalize">{{cajas.nomUser}}</td>
+								<td>{{formatoMoneda(cajas.apertura)}}</td>
+								<td>{{formatoMoneda(cajas.cierre)}}</td>
+							</tr>
+						</tbody>
+					</table>
+					<p class="my-3" v-if="muchasCajas.length==0">No hay cajas registradas en la fecha {{fechaLatam(fechaBuscar)}}</p>
+				</div>
+				
+			</div>
+		</div>
+	</div>
 	
 
 	</div>
 </template>
 
 <script>
-var modalAbrirCaja, modalRegistrarEvento, modalCobrarCliente, modalVarios, divCli;
+var modalAbrirCaja, modalRegistrarEvento, modalCobrarCliente, modalVarios, divCli, modalBuscarCajas;
 export default {
 	name: 'Caja',
 	props:['monedas'],
@@ -218,7 +267,8 @@ export default {
 			quienAbrio:'', cuandoAbrio:'', eMonto:0, eDetalle:'', queIngreso:'', clienteBuscar:'',
 			cobrarFiltro:'', elegidos:[], dniElegido:'',nombreELegido:'',cliElegido:'', casosCliente:[], casoElegido:-1, casoDetalle:'', casoCosto:0,
 			movidasCaja:[], queMoneda:1, sumaRangos:[], casosPrecios:[], listaPrecios:[], sumaElegidos:0,
-			aSumas : ['2', '4'], aRestas: ['5']
+			aSumas : ['2', '4'], aRestas: ['5'],
+			fechaBuscar:null, muchasCajas:[], cajaActual:false
 		}
 	},
 	beforeMount(){
@@ -232,24 +282,11 @@ export default {
 		modalRegistrarEvento = new bootstrap.Modal(document.getElementById('modalRegistrarEvento'));
 		modalCobrarCliente = new bootstrap.Modal(document.getElementById('modalCobrarCliente'));
 		modalVarios = new bootstrap.Modal(document.getElementById('modalVarios'));
+		modalBuscarCajas = new bootstrap.Modal(document.getElementById('modalBuscarCajas'));
 		divCli= document.getElementById('divClienteUbicado');
+		this.fechaBuscar = moment().format('YYYY-MM-DD');
 		
-
-
-		axios.post(this.nombreApi + '/verificarCaja.php')
-		.then((response)=>{ //console.log( response.data.id );
-			if(response.data.id!=null){
-				this.cajaAbierta=true;
-				this.idCaja = response.data.id;
-				this.cuandoAbrio = response.data.registro;
-				this.quienAbrio = response.data.usuario;
-				this.montoInicial = response.data.apertura;
-				this.cargarDatosCaja();
-			}
-		})
-		.catch((error)=>{ console.log( error );});
-
-		
+		this.verCajaExacta();
 		
 	},
 	
@@ -287,10 +324,32 @@ export default {
 					this.cuandoAbrio='';
 					this.quienAbrio='',
 					this.montoInicial=0,
+					this.movidasCaja=[];
 					modalAbrirCaja.hide();
 				}
 			})
 			.catch((error)=>{ console.log( error );});
+		},
+		verCajaExacta(queCaja = null){
+			axios.post(this.nombreApi + '/verificarCaja.php', {idCaja:queCaja})
+			.then((response)=>{ //console.log( response.data );
+				if(response.data.id!=null){
+					this.cajaAbierta=true;
+					this.idCaja = response.data.id;
+					this.cuandoAbrio = response.data.registro;
+					this.quienAbrio = response.data.usuario;
+					this.montoInicial = response.data.apertura;
+					if(response.data.actual=='1'){
+						this.cajaActual = true;
+					}else{
+						this.cajaActual = false;
+					}
+					this.sumaRangos=[];
+					this.cargarDatosCaja();
+				}
+			})
+			.catch((error)=>{ console.log( error );});
+			modalBuscarCajas.hide();
 		},
 		nuevaEntrada(){
 			document.getElementById('mdTitulo').textContent='Nueva entrada de dinero';
@@ -406,7 +465,7 @@ export default {
 			//this.casoDetalle = this.casosCliente[this.casoElegido].antecedentes;
 			
 		},
-		cargarDatosCaja(){
+		cargarDatosCaja(){ console.log( this.idCaja );
 			axios.post(this.nombreApi + '/cargarDatosCaja.php', {idCaja : this.idCaja})
 			.then((response)=>{ //console.log( response.data );
 				this.movidasCaja=response.data;
@@ -419,6 +478,9 @@ export default {
 		},
 		fechaLatam(fechita){
 			return moment(fechita).format('DD/MM/YYYY');
+		},
+		formatoMoneda(montito){
+			return parseFloat(montito).toFixed(2);
 		},
 		selectAnteriores(indice, e){
 			this.sumaElegidos=0;
@@ -468,6 +530,17 @@ export default {
 
 
 			//console.log( listaIDS );
+		},
+		buscarCajas(){
+			this.apilarCajas();
+			modalBuscarCajas.show();
+		},
+		apilarCajas(){
+			axios.post(this.nombreApi+'/apilarCajas.php', {fecha: this.fechaBuscar})
+			.then((response)=>{ //console.log( response.data );
+				this.muchasCajas = response.data;
+			})
+			.catch((error)=>{ console.log( error );});
 		}
 	},
 	computed:{
@@ -475,8 +548,10 @@ export default {
 			return moment(this.cuandoAbrio).format('dddd DD [de] MMMM YYYY - h:mm a');
 		},
 		
+		
 		sumaMovimientos(){
 			let suma=0;
+			this.sumaRangos=[];
 			
 			this.movidasCaja.forEach(movid =>{
 				console.log( movid );
@@ -510,5 +585,8 @@ export default {
 <style scoped>
 .table-hover>tfoot>tr:hover {
 	--bs-table-accent-bg: var(--bs-table-hover-bg);
+}
+#modalBuscarCajas tr{
+	cursor: pointer;
 }
 </style>

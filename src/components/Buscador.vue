@@ -11,7 +11,7 @@
 						</div>
 
 						<p class="my-1">Término a buscar:</p>
-						<input type="text" class="form-control form-control-lg" v-model="texto">
+						<input type="text" class="form-control form-control-lg" v-model="texto" @keyup.enter="buscar" >
 						<div class="d-grid gap-1 my-2">
 							<button class="btn btn-outline-primary btn-block" @click="buscar">Buscar</button>
 						</div>

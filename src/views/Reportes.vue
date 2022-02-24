@@ -10,14 +10,17 @@
 					<div class="form-floating">
 						<select class="form-select" id="floatingSelect" aria-label=" " @change="cambiarVistas($event)">
 							<option value="R1">Cajas</option>
-							<option value="R2">1Cajas</option>
-							<option value="R2">3Cajas</option>
+							<!-- <option value="R2">1Cajas</option>
+							<option value="R2">3Cajas</option> -->
 						</select>
 						<label for="floatingSelect">Reportes</label>
 					</div>
 				</div>
 				<div class="col col-lg-6">
-
+					<div class="row row-cols-2">
+						<div><input class="form-control" type="date" name="" id="" v-model="fecha1"></div>
+						<div><input class="form-control" type="date" name="" id="" v-model="fecha2"></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -34,10 +37,12 @@ export default ({
 	data() {
 		return{
 			verFechas:false,
+			fecha1:null,fecha2:null
 		}
 	},
 	mounted(){
-		
+		this.fecha1=moment().format('YYYY-MM-DD')
+		this.fecha2=moment().add(1,'d').format('YYYY-MM-DD')
 	},
 	methods:{
 		cambiarVistas(event){
