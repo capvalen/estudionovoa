@@ -1,7 +1,7 @@
 <template>
 	<div >
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 border-bottom">
-			<h4 >Clientes <small style="font-size: .675em;color: #9a9a9a;">Los 20 últimos</small></h4>
+			<h4 >Clientes <small style="font-size: .675em;color: #9a9a9a;">(30 últimos)</small></h4>
 			<div class="d-flex">
 				<button class="btn btn-outline-secondary " @click="crearModal"><i class="bi bi-pin-angle"></i> Nuevo</button>
 				<Buscador ref="compBuscador" @buscar="consultar" />

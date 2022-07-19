@@ -18,7 +18,7 @@
 				<tbody>
 					<tr v-for="(usuario, index) in usuarios" :key="usuario.id">
 						<td>{{index+1}}</td>
-						<td>{{usuario.nombres+" "+usuario.apellidos}}</td>
+						<td class="text-capitalize">{{usuario.nombres+" "+usuario.apellidos}}</td>
 						<td>{{usuario.user}}</td>
 						<td>
 							<span v-if="usuario.idTipo==1">Administrador</span>

@@ -64,6 +64,13 @@ const routes = [
 			return import('../views/Reportes.vue')
 		}
 	},
+	{
+		path: '/configuraciones',
+		name: 'Configuraciones',
+		component: function () {
+			return import('../views/Configuraciones.vue')
+		}
+	},
 ]
 
 const router = createRouter({

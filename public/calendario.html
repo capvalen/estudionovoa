@@ -13,9 +13,16 @@
 		<style>
 			.fc-col-header-cell-cushion{ text-transform: capitalize;text-decoration: none;}
 			.fc-scrollgrid-sync-inner a{color: #175ca0}
-			.fc-toolbar-title{text-transform: capitalize;}
+			.fc-event-title, .fc-toolbar-title{text-transform: capitalize;}
 			.fc .fc-timegrid-col.fc-day-today{background-color: rgb(167 154 109 / 15%);}
 			.fc .fc-highlight{background-color: #7575753b;}
+			@media (max-width: 800px){
+				.fc .fc-col-header-cell-cushion{
+					font-size: 9px;
+				}
+				.fc-v-event .fc-event-title{font-size: 0.7rem;}
+				.fc-timegrid-event .fc-event-time{font-size: 0.6rem;}
+			}
 		</style>
 		<!-- <button class="btn btn-secondary" id="btnClick"> BOTON </button> -->
     <div class=" mx-2 py-5" id='calendar'></div>
@@ -34,13 +41,21 @@
 							<input type="text" class="form-control" id="floAsunto" placeholder=" " autocomplete="off" name="asunto">
 							<label for="floAsunto">Asunto</label>
 						</div>
-						<div class="form-floating">
+						<div class="form-floating mb-3">
 							<textarea class="form-control" placeholder="Leave a comment here" id="floDetalles" name="detalles" style="height: 100px"></textarea>
 							<label for="floDetalles">Detalles</label>
 						</div>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="floExpediente" placeholder=" " autocomplete="off" name="nexpediente">
+							<label for="floExpediente">N° Expediente</label>
+						</div>
 						<label class="mt-2" for="floDetalles">Abogado responsable</label>
-						<select class="form-select" id="sltAbogados">
+						<select class="form-select text-capitalize" id="sltAbogados">
 						</select>
+						<label class="mt-2" for="floDetalles">Tipo de audiencia</label>
+						<select class="form-select text-capitalize" id="sltTipoAudiencia">
+						</select>
+						
 						<label class="mt-2" for="floDetalles">Horario:</label>
 						<div class="row row-cols-2">
 							<div class="col">
@@ -67,12 +82,21 @@
 		    <div class="modal-content">
 		      <div class="modal-body">
 						<div class="d-flex justify-content-between mb-2">
-							<h5 class="modal-title" id="h5Detalles">Nuevo Evento</h5>
+							<h5 class="modal-title text-capitalize" id="h5Detalles">Nuevo Evento</h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
-		        <div id="divDetalles"></div>
+						<label><strong>Contenido:</strong></label>
+		        <div class="text-capitalize ms-2 mb-2" id="divDetalles"></div>
+						<label><strong>Tipo de audiencia:</strong></label>
+		        <div class="text-capitalize ms-2 mb-2" id="divTipoAudiencia"></div>
+						<label><strong>Abogado responsable:</strong></label>
+		        <div class="text-capitalize ms-2 mb-2" id="divAbogadoResp"></div>
+						<label><strong>N° de expediente:</strong></label>
+		        <div class="text-capitalize ms-2 mb-2" id="divExpediente"></div>
+						<label><strong>Hora inicio y final:</strong></label>
+		        <div class="text-capitalize ms-2 mb-2" id="divHoras"></div>
 						<hr>
-						<div><small>Registrado: <em><span id="smallDetalles"></span></em></small></div>
+						<div><small>Registrado el <em><span id="smallDetalles"></span></em></small></div>
 						<div class="d-flex justify-content-end ">
 							<button type="button" class="btn btn-outline-danger" id="eliminarCale">Eliminar</button>
 						</div>
@@ -86,6 +110,7 @@
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/locales-all.min.js"></script>
+		<script src="./js/moment.min.js"></script>
 
 		<script>
 			function dias(id){
@@ -97,7 +122,7 @@
       document.addEventListener('DOMContentLoaded', function() {
 				var nombreApi = "https://intranet.novoa-medicos-abogados.com/api";
 				// var nombreApi = "http://localhost/novoaApi";
-				var modalAlimentar, modalDetalles, asunto, detalles, comienza, termina, formulario, mesActual, añoActual, todo, indexActual, idActual;
+				var modalAlimentar, modalDetalles, asunto, detalles, comienza, termina, formulario, mesActual, añoActual, todo, indexActual, idActual, tiposAudiencia;
 
 				modalAlimentar = new bootstrap.Modal(document.getElementById('modalAlimentar'));
 				modalDetalles = new bootstrap.Modal(document.getElementById('modalDetalles'));
@@ -119,14 +144,26 @@
 						method:'POST'
 					})
 					.then(res=> res.json())
-					.then( respuesta => { console.log( respuesta );
+					.then( respuesta => { //console.log( respuesta );
 						respuesta.forEach(abogado=>{
 							if(abogado.idTipo==3){
 								document.getElementById('sltAbogados').innerHTML+=`
-									<option value="${abogado.id}">${abogado.apellidos} ${abogado.nombres}</option>`;
+									<option class="text-capitalize" value="${abogado.id}">${abogado.apellidos} ${abogado.nombres}</option>`;
 							}
-						})
+						});
+					});
+					//Pedimos tipos de audiencia:
+					fetch(nombreApi + '/listarTipoAudiencia.php', {
+						method:'POST'
 					})
+					.then(res=> res.json())
+					.then( respuesta => { //console.log( respuesta );
+						tiposAudiencia = respuesta;
+						respuesta.forEach(audiencia=>{
+							document.getElementById('sltTipoAudiencia').innerHTML+=`
+								<option class="text-capitalize" value="${audiencia.id}">${audiencia.descripcion}</option>`;
+						});
+					});
 
 					var fechas = new FormData();
 					fechas.append('mes', mesActual + "-" + añoActual)
@@ -161,9 +198,13 @@
 					e.preventDefault();
 					var datos = new FormData(formulario);
 					
-					datos.append('comienza', comienza );
-					datos.append('termina', termina );
+					datos.append('comienza', moment(comienza).format('YYYY-MM-DD') +" "+ horaIni.value );
+					datos.append('termina', moment(termina).format('YYYY-MM-DD') +" "+ horaFin.value );
+					/* datos.append('comienza', comienza );
+					datos.append('termina', termina ); */
 					datos.append('abogado', document.getElementById('sltAbogados').value );
+					datos.append('idTipoAudiencia', document.getElementById('sltTipoAudiencia').value );
+					datos.append('expediente', document.getElementById('floExpediente').value );
 					datos.append('horaIni', horaIni.value );
 					datos.append('horaFin', horaFin.value );
 					
@@ -175,7 +216,7 @@
 					.then(data =>{
 						if(Number.isInteger(parseInt(data))){
 							//refrescar datos o añadir.
-							agregar( data, datos.get('asunto'), comienza, termina, datos.get('color') );
+							agregar( data, datos.get('asunto'), datos.get('comienza'), datos.get('termina'), datos.get('color') );
 							todo.push({
 								id: data, asunto: datos.get('asunto'), descripcion: datos.get('detalles'), registrado: ahora
 							})
@@ -184,7 +225,8 @@
 						console.log( data );
 					})
 
-					//console.log( datos.get('inicio') );
+					//console.log(horaFin.value);
+
 				})
 				function agregar (id, titulo, horaInicio, horaFin, color='#563d7c'){
 					calendar.addEvent({
@@ -269,9 +311,13 @@
 						let index = todo.map( eventito => eventito.id ).indexOf(info.event.id);
 						indexActual = index
 						idActual = info.event.id;
-						document.getElementById('h5Detalles').innerHTML= todo[index].asunto;
+						document.getElementById('h5Detalles').innerHTML= todo[index].asunto ;
 						document.getElementById('divDetalles').innerHTML= todo[index].descripcion.replaceAll('\n', '<br>');
-						document.getElementById('smallDetalles').innerHTML= todo[index].registrado;
+						document.getElementById('divTipoAudiencia').innerHTML= todo[index].desTipoAudiencia;
+						document.getElementById('divAbogadoResp').innerHTML= todo[index].nomAbogado;
+						document.getElementById('smallDetalles').innerHTML= moment(todo[index].registrado).format('DD/MM/YYYY hh:mm a');
+						document.getElementById('divExpediente').innerHTML= todo[index].expediente;
+						document.getElementById('divHoras').innerHTML= moment(todo[index].comienza).format('hh:mm a') +" - "+ moment(todo[index].termina).format('hh:mm a');
 						
 						modalDetalles.show();
 				    // change the border color just for fun
