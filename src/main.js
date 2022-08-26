@@ -11,7 +11,11 @@ const app= createApp(App);
 app.config.globalProperties.rutaDocs ='D:/Archivos/Programado/estudionovoa/public/documentos/'; */
 
 //Producción
-app.config.globalProperties.nombreApi ='https://intranet.novoa-medicos-abogados.com/api';
-app.config.globalProperties.rutaDocs ='/home/wfvrkfap/WEBS/novoa-medicos-abogados.com/intranet/documentos/';
+/* app.config.globalProperties.nombreApi ='https://intranet.novoa-medicos-abogados.com/api';
+app.config.globalProperties.rutaDocs ='/home/wfvrkfap/WEBS/novoa-medicos-abogados.com/intranet/documentos/'; */
+
+//Demo
+app.config.globalProperties.nombreApi ='https://novoademo.infocatsoluciones.com/api';
+app.config.globalProperties.rutaDocs ='/home/wfvrkfap/public_html/app/demo/novoa/documentos/';
 
 app.use(router).mount('#app')

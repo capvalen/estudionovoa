@@ -274,6 +274,12 @@ export default {
 	beforeMount(){
 		
 	},
+	watch:{
+		$route(to, from){
+			this.movidasCaja=[];
+			if( parseInt(this.$route.params.id)>0 ){ this.verCajaExacta(this.$route.params.id);}else{ this.verCajaExacta(); }
+		}
+	},
 	mounted(){
 		moment.locale('es');
 		//this.monedas.forEach(mone=>{ mone.suma=0; });
@@ -285,9 +291,8 @@ export default {
 		modalBuscarCajas = new bootstrap.Modal(document.getElementById('modalBuscarCajas'));
 		divCli= document.getElementById('divClienteUbicado');
 		this.fechaBuscar = moment().format('YYYY-MM-DD');
-		
-		this.verCajaExacta();
-		
+		//console.log(parseInt(this.$route.params.id));
+		if( parseInt(this.$route.params.id)>0 ){ this.verCajaExacta(this.$route.params.id);}else{ this.verCajaExacta(); }
 	},
 	
 	methods:{
@@ -331,6 +336,7 @@ export default {
 			.catch((error)=>{ console.log( error );});
 		},
 		verCajaExacta(queCaja = null){
+
 			axios.post(this.nombreApi + '/verificarCaja.php', {idCaja:queCaja})
 			.then((response)=>{ //console.log( response.data );
 				if(response.data.id!=null){

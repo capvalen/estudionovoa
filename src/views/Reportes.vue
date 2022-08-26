@@ -8,20 +8,30 @@
 			<div class="row">
 				<div class="col col-lg-6">
 					<div class="form-floating">
-						<select class="form-select" id="floatingSelect" aria-label=" " @change="cambiarVistas($event)">
-							<option value="R1">Cajas</option>
+						<select class="form-select" id="sltTipoReporte" aria-label=" " @change="cambiarVistas($event)">
+							<option value="R1">Ver cajas aperturadas</option>
+							<option value="R6">Deudas pendientes</option>
+							<option value="R5">Procesos concluidos</option>
+							<option value="R2">Procesos en calificación</option>
+							<option value="R3">Procesos en trámite</option>
+							<option value="R7">Procesos pagados</option>
+							<option value="R4">Procesos registrados</option>
 							<!-- <option value="R2">1Cajas</option>
 							<option value="R2">3Cajas</option> -->
 						</select>
-						<label for="floatingSelect">Reportes</label>
+						<label for="sltTipoReporte">Reportes</label>
 					</div>
 				</div>
 				<div class="col col-lg-6">
-					<div class="row row-cols-2">
-						<div><input class="form-control" type="date" name="" id="" v-model="fecha1"></div>
-						<div><input class="form-control" type="date" name="" id="" v-model="fecha2"></div>
+					<div class="row row-cols-3">
+						<div v-show="verFechas"><input class="form-control" type="date" name="" id="" v-model="fecha1"></div>
+						<div v-show="verFechas"><input class="form-control" type="date" name="" id="" v-model="fecha2"></div>
+						<div><button class="btn btn-outline-primary" @click="solicitarReporte"><i class="bi bi-search"></i> Buscar</button></div>
 					</div>
 				</div>
+			</div>
+			<div class="row" id="divResultados">
+
 			</div>
 		</div>
 
@@ -36,7 +46,7 @@ export default ({
 	name: 'Reportes',
 	data() {
 		return{
-			verFechas:false,
+			verFechas:true,
 			fecha1:null,fecha2:null
 		}
 	},
@@ -47,13 +57,19 @@ export default ({
 	methods:{
 		cambiarVistas(event){
 			switch (event.target.value) {
-				case "R1":
-					this.verFechas=true;
-					break;
-			
-				default:
-					break;
+				case "R6": this.verFechas=false; break;
+				default: this.verFechas=true; break;
 			}
+		},
+		async solicitarReporte(event){
+			let datos = new FormData();
+			datos.append('tipo', document.getElementById('sltTipoReporte').value)
+			datos.append('fecha1', this.fecha1)
+			datos.append('fecha2', this.fecha2)
+			const respServ = await fetch(this.nombreApi +'/reportes.php',{
+				method:'POST', body:datos
+			});
+			document.getElementById('divResultados').innerHTML = await respServ.text();
 		}
 	}
 })

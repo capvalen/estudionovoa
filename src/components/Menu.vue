@@ -28,14 +28,12 @@
 			<router-link class="fs-5 text-decoration-none my-2" to="/usuarios">
 				<i class="bi bi-person-badge"></i> <span class="ps-3">Usuarios</span>
 			</router-link>
+			<router-link class="fs-5 text-decoration-none my-2" to="/reportes">
+				<i class="bi bi-file-earmark"></i> <span class="ps-3">Reportes</span>
+			</router-link>
 			<router-link class="fs-5 text-decoration-none my-2" to="/configuraciones">
 				<i class="bi bi-gear"></i> <span class="ps-3">Configuraciones</span>
 			</router-link>
-			<!-- <router-link class="fs-5 text-decoration-none my-2" to="/reportes">
-				<i class="bi bi-file-earmark"></i> <span class="ps-3">Reportes</span>
-			</router-link> -->
-		
-		
 
 			<!-- Perfil, configuraciones, modo oscuro, ayuda y soporte técnico -->
 		</section>

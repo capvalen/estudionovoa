@@ -38,7 +38,7 @@
 						</div>
 						<div class="form-floating mb-3">
 							<input type="text" class="form-control" id="floRazon" placeholder="razon" v-model="razon_social">
-							<label for="floRazon">Razón social</label>
+							<label for="floRazon">Razón social o Nombres</label>
 						</div>
 						<div class="form-floating mb-3">
 							<input type="text" class="form-control" id="floDireccion" placeholder="direccion" v-model="direccion">
