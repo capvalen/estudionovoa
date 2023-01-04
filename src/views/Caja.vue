@@ -1,13 +1,13 @@
 <template>
-	<div class="">
+	<div class="" >
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 border-bottom">
 			<div class="d-flex">
 				<h4 class="mb-0" >Caja </h4>
 				<button class="btn btn-outline-success ms-2" @click="buscarCajas"><i class="bi bi-search"></i> Buscar fechas</button>
-				
-				
+	
+	
 			</div>
-			<div class="d-flex">
+			<div class="" v-show="nivel=='1' || nivel=='2'">
 				<button class="btn btn-outline-secondary " v-if="!cajaAbierta" @click="abrirCaja"><i class="bi bi-pin-angle"></i> Abrir Caja</button>
 				<button class="btn btn-outline-secondary " v-else @click="porCerrarCaja"><i class="bi bi-pin-angle"></i> Cerrar Caja</button>
 			</div>
@@ -15,56 +15,57 @@
 		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1">
 			<p class="mb-0 text-muted"><i class="bi bi-person"></i> Abierta por: <span class="text-capitalize">{{quienAbrio}}</span></p>
 			<p class="mb-0 text-muted"><i class="bi bi-calendar2-check"></i> Aperturado el <span class=" text-capitalize">{{(fechaAbrio)}}</span> </p>
-
 		</div>
-		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1 && cajaActual">
-			<div class="d-flex justify-content-between  ">
+		<div class="border-bottom py-2 px-4" v-if="idCaja!=-1 && cajaActual" >
+			<div class="d-flex justify-content-between  " >
 				<button class="btn btn-outline-primary mx-2" type="button" @click="nuevaEntrada()"><i class="bi bi-cart-plus"></i> Nueva entrada S/</button>
 				<button class="btn btn-outline-danger mx-2" type="button" @click="nuevaSalida()"><i class="bi bi-cart-dash"></i> Nueva salida S/</button>
 				<button class="btn btn-outline-warning mx-2" type="button" @click="cobrarCli()"><i class="bi bi-cart-dash"></i> Cobrar cliente</button>
 			</div>
 		</div>
-		<h5 class="fs-5 m-2">Movimientos</h5>
-		<div class="row container">
-			<table class="table table-hover">
-				<thead>
-					<tr>
-						<th>N°</th>
-						<th>Concepto</th>
-						<th>Movimento</th>
-						<th>Moneda</th>
-						<th>Precio</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="(movida, index) in movidasCaja" :key="movida.id">
-						<td>{{index+1}}</td>
-						<td class="text-capitalize">{{movida.observaciones}}</td>
-						<td>
-							<span>{{movida.movida}}</span>
-						</td>
-						<td>{{movida.moneda}}</td>
-						<td :class="{'text-primary': aSumas.includes(movida.idMovimiento), 'text-danger': aRestas.includes(movida.idMovimiento)}">S/ 
-							<span v-if="aSumas.includes(movida.idMovimiento)">+</span>
-							<span v-if="aRestas.includes(movida.idMovimiento)">-</span>
-							<span>{{parseFloat(movida.monto).toFixed(2)}}</span></td>
-					</tr>
-				</tbody>
-				<tfoot>
-					<tr>
-						<td colspan="4" class="text-end">TOTAL:</td>
-						<td >S/ {{parseFloat(sumaMovimientos).toFixed(2)}}</td>
-					</tr>
-
-					<tr v-for="rango in sumaRangos" :key="rango.id" >
-						<td colspan="4" class="text-end">Total de {{nombreMoneda(rango.id)}}:</td>
-						<td >S/ {{parseFloat(rango.suma).toFixed(2)}}</td>
-					</tr>
-					
-				</tfoot>
-			</table>
+		<div v-show="nivel=='1' || nivel=='2'">
+			<h5 class="fs-5 m-2">Movimientos</h5>
+			<div class="row container">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>N°</th>
+							<th>Concepto</th>
+							<th>Movimento</th>
+							<th>Moneda</th>
+							<th>Precio</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="(movida, index) in movidasCaja" :key="movida.id">
+							<td>{{index+1}}</td>
+							<td class="text-capitalize">{{movida.observaciones}}</td>
+							<td>
+								<span>{{movida.movida}}</span>
+							</td>
+							<td>{{movida.moneda}}</td>
+							<td :class="{'text-primary': aSumas.includes(movida.idMovimiento), 'text-danger': aRestas.includes(movida.idMovimiento)}">S/
+								<span v-if="aSumas.includes(movida.idMovimiento)">+</span>
+								<span v-if="aRestas.includes(movida.idMovimiento)">-</span>
+								<span>{{parseFloat(movida.monto).toFixed(2)}}</span></td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="4" class="text-end">TOTAL:</td>
+							<td >S/ {{parseFloat(sumaMovimientos).toFixed(2)}}</td>
+						</tr>
+						<tr v-for="rango in sumaRangos" :key="rango.id" >
+							<td colspan="4" class="text-end">Total de {{nombreMoneda(rango.id)}}:</td>
+							<td >S/ {{parseFloat(rango.suma).toFixed(2)}}</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
 		</div>
-
+		<div v-show="nivel=='3'">
+			<p class="p-4">No tienes permiso para ver esta sección</p>
+		</div>
 	<!-- Modal aperturar Caja -->
 	<div class="modal fade" id="modalAbrirCaja" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
@@ -91,7 +92,6 @@
 			</div>
 		</div>
 	</div>
-
 	<!-- Modal registrar nuevo evento -->
 	<div class="modal fade" id="modalRegistrarEvento" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-sm">
@@ -125,7 +125,6 @@
 			</div>
 		</div>
 	</div>
-
 	<!-- Modal para cobrar al cliente -->
 	<div class="modal fade" id="modalCobrarCliente" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
@@ -144,12 +143,11 @@
 						<p class="mb-0"><small>DNI: {{dniElegido}}</small></p>
 						<h5>Cliente: <small class="text-muted">{{nombreELegido}}</small></h5>
 					</div>
-
 					<div class="form-floating mb-3">
 						<select class="form-select" id="floCasoActivo" aria-label="Floating label select example" @change="updateCasoActivo()">
 							<option v-for="caso in casosCliente" :key="caso.id" :value="caso.id">{{caso.caso}} </option>
 							<option v-if="casosCliente.length==0" value="-1">No tiene ningún procesos activos </option>
-							
+	
 						</select>
 						<label for="floCasoActivo">Casos del cliente</label>
 					</div>
@@ -159,10 +157,10 @@
 						<div class="collapse show" id="divChecks">
 							<div class="card card-body">
 								<div class="form-check" v-for="(precio, index) in listaPrecios" :key="precio.id" >
-								  <input class="form-check-input" type="checkbox" value="" :id="'flexCheckDefault'+index" :que-id="precio.id" @click="selectAnteriores(index, $event)">
-								  <label class="form-check-label" :for="'flexCheckDefault'+index">
-								    Cuota del {{fechaLatam(precio.fecha)}} de S/ {{parseFloat(parseFloat(precio.cuota) - parseFloat(precio.adelanto)).toFixed(2)}}
-								  </label>
+									<input class="form-check-input" type="checkbox" value="" :id="'flexCheckDefault'+index" :que-id="precio.id" @click="selectAnteriores(index, $event)">
+									<label class="form-check-label" :for="'flexCheckDefault'+index">
+										Cuota del {{fechaLatam(precio.fecha)}} de S/ {{parseFloat(parseFloat(precio.cuota) - parseFloat(precio.adelanto)).toFixed(2)}}
+									</label>
 								</div>
 							</div>
 						</div>
@@ -177,7 +175,6 @@
 			</div>
 		</div>
 	</div>
-
 	<!-- Modal para varios -->
 	<div class="modal fade" id="modalVarios" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
@@ -204,11 +201,10 @@
 						</tbody>
 					</table>
 				</div>
-				
+	
 			</div>
 		</div>
 	</div>
-
 	<!-- Modal para buscar cajas -->
 	<div class="modal fade" id="modalBuscarCajas" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
@@ -235,7 +231,7 @@
 						<tbody>
 							<tr v-for="(cajas, index) in muchasCajas" :key="cajas.id" @click="verCajaExacta(cajas.id)">
 								<td>{{index+1}}</td>
-								<td>{{fechaLatam(cajas.registro)}} 
+								<td>{{fechaLatam(cajas.registro)}}
 									<span v-if="cajas.obsApertura!=''"><br>{{cajas.obsApertura}}</span>
 									<span v-if="cajas.obsCierre!=''"><br>{{cajas.obsCierre}}</span></td>
 								<td class="text-capitalize">{{cajas.nomUser}}</td>
@@ -246,13 +242,13 @@
 					</table>
 					<p class="my-3" v-if="muchasCajas.length==0">No hay cajas registradas en la fecha {{fechaLatam(fechaBuscar)}}</p>
 				</div>
-				
+	
 			</div>
 		</div>
 	</div>
 	
-
 	</div>
+		
 </template>
 
 <script>
@@ -268,7 +264,7 @@ export default {
 			cobrarFiltro:'', elegidos:[], dniElegido:'',nombreELegido:'',cliElegido:'', casosCliente:[], casoElegido:-1, casoDetalle:'', casoCosto:0,
 			movidasCaja:[], queMoneda:1, sumaRangos:[], casosPrecios:[], listaPrecios:[], sumaElegidos:0,
 			aSumas : ['2', '4'], aRestas: ['5'],
-			fechaBuscar:null, muchasCajas:[], cajaActual:false
+			fechaBuscar:null, muchasCajas:[], cajaActual:false, nivel:3
 		}
 	},
 	beforeMount(){
@@ -283,16 +279,20 @@ export default {
 	mounted(){
 		moment.locale('es');
 		//this.monedas.forEach(mone=>{ mone.suma=0; });
+		this.nivel = localStorage.getItem('nivel');
 
-		modalAbrirCaja = new bootstrap.Modal(document.getElementById('modalAbrirCaja'));
-		modalRegistrarEvento = new bootstrap.Modal(document.getElementById('modalRegistrarEvento'));
-		modalCobrarCliente = new bootstrap.Modal(document.getElementById('modalCobrarCliente'));
-		modalVarios = new bootstrap.Modal(document.getElementById('modalVarios'));
-		modalBuscarCajas = new bootstrap.Modal(document.getElementById('modalBuscarCajas'));
-		divCli= document.getElementById('divClienteUbicado');
-		this.fechaBuscar = moment().format('YYYY-MM-DD');
-		//console.log(parseInt(this.$route.params.id));
-		if( parseInt(this.$route.params.id)>0 ){ this.verCajaExacta(this.$route.params.id);}else{ this.verCajaExacta(); }
+		if(this.nivel !='3'){
+			modalAbrirCaja = new bootstrap.Modal(document.getElementById('modalAbrirCaja'));
+			modalRegistrarEvento = new bootstrap.Modal(document.getElementById('modalRegistrarEvento'));
+			modalCobrarCliente = new bootstrap.Modal(document.getElementById('modalCobrarCliente'));
+			modalVarios = new bootstrap.Modal(document.getElementById('modalVarios'));
+			modalBuscarCajas = new bootstrap.Modal(document.getElementById('modalBuscarCajas'));
+			divCli= document.getElementById('divClienteUbicado');
+			this.fechaBuscar = moment().format('YYYY-MM-DD');
+			//console.log(parseInt(this.$route.params.id));
+			if( parseInt(this.$route.params.id)>0 ){ this.verCajaExacta(this.$route.params.id);}else{ this.verCajaExacta(); }
+		}
+
 	},
 	
 	methods:{

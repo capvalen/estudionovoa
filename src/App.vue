@@ -81,6 +81,7 @@ export default {
 					localStorage.loginIn = this.loginIn;
 					localStorage.idUsuario = response.data.id;
 					localStorage.nombreUsuario = response.data.nombre;
+					localStorage.nivel = response.data.tipo;
 				}else{
 					this.mostrarToastMal('Datos erróneos');
 				}

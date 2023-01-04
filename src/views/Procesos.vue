@@ -77,6 +77,7 @@
 									<select class="form-select" id="floPagos" @change="cambioPago($event)">
 										<option selected>Seleccione un tipo</option>
 										<option value="1">Pago único</option>
+										<option value="3">Porcentaje</option>
 										<option value="2">En cuotas</option>
 									</select>
 									<label for="floPagos">Tipo de pago</label>
@@ -267,12 +268,16 @@ export default {
 		},
 		cambioPago(e){
 			let tip = e.target.value
+			console.log('tipo', tip);
 			var divPagos = document.getElementById('divDetallePagos');
 			if(tip =='1'){
 				this.numCuotas=1;
 				divPagos.classList.add('d-none')
 			}else if(tip =='2'){
 				divPagos.classList.remove('d-none')
+			}else if(tip =='3'){
+				this.numCuotas=1;
+				divPagos.classList.add('d-none')
 			}
 		},
 		crearProceso(){
@@ -297,33 +302,32 @@ export default {
 			if(document.getElementById("formFile").files.length>0){
 				console.log( 'deberia subir a la nube' );
 
-			let formData = new FormData();
-			formData.append('archivo', this.archivo);
-			formData.append('ruta', this.rutaDocs );
-			axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
-				headers: {
-					'Content-Type' : 'multipart/form-data'
-				}
-			}).then( function (response){
-				console.log( response.data );
-				if( response.data =='Error subida' ){
-					nombreSubida='';
-					nombreRuta='';
-					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
-					console.log( 'err1' );
-				}else{ //subió bien
-					that.documentos.push({
-						nombreSubida : document.getElementById("formFile").files[0].name,
-						nombreRuta : response.data
-					});
-				}
+				let formData = new FormData();
+				formData.append('archivo', this.archivo);
+				formData.append('ruta', this.rutaDocs );
+				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+					headers: {
+						'Content-Type' : 'multipart/form-data'
+					}
+				}).then( function (response){
+					console.log( response.data );
+					if( response.data =='Error subida' ){
+						nombreSubida='';
+						nombreRuta='';
+						that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+						console.log( 'err1' );
+					}else{ //subió bien
+						that.documentos.push({
+							nombreSubida : document.getElementById("formFile").files[0].name,
+							nombreRuta : response.data
+						});
+					}
 
-			}).catch(function(ero){
-				console.log( 'err2' + ero );
-				that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
-			})
-		}
-
+				}).catch(function(ero){
+					console.log( 'err2' + ero );
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+				})
+			}
 		},
 		mandarDatos(nombreSubida, nombreRuta ){
 			var that = this;
@@ -362,7 +366,7 @@ export default {
 			else if(this.antecedentes==''){ this.$emit('mostrarToastMal', 'Falta poner descripción como antecedentes'); return false;}
 			/* else if(this.chkDocumentos){ this.$emit('mostrarToastMal', 'Falta poner descripción como antecedentes'); return false; } */
 			else if(document.getElementById('floPagos').value=='Seleccione un tipo'){ this.$emit('mostrarToastMal', 'Debe seleccionar un tipo de pago'); return false;}
-			else if(this.precio<=0){ this.$emit('mostrarToastMal', 'El pago no puede ser 0 o negativo'); return false; }
+			else if(this.precio<0){ this.$emit('mostrarToastMal', 'El pago no puede negativo'); return false; }
 			else if(document.getElementById('floPagos').value=='2' && (this.numCuotas=='' || this.numCuotas==null) ){ this.$emit('mostrarToastMal', 'Ingrese cantidad una cuotas'); return false;}
 			else if(document.getElementById('floPagos').value=='2' && (this.plazos=='' || this.plazos==null) ){ this.$emit('mostrarToastMal', 'Ingrese los plazos de las cuotas'); return false;}
 			else if(document.getElementById('floPagos').value=='2' && (this.fecha=='' || this.fecha==null ) ){ this.$emit('mostrarToastMal', 'Ingrese fecha inicial de las cuotas'); return false;}

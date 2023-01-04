@@ -1,6 +1,7 @@
 <template>
 	<div class="container p-3">
 
+		<p>Bienvenido, iniciaste como: <strong>{{returnNombreUsuario()}}</strong></p>
 
 		<div class="row">
 			<div class="col-sm-6">
@@ -53,6 +54,9 @@ export default {
 	methods:{
 		cerrarSesion(){
 			this.$emit('cerrarSesion');
+		},
+		returnNombreUsuario(){
+			return localStorage.getItem('nombreUsuario')
 		}
 	},
 	mounted(){

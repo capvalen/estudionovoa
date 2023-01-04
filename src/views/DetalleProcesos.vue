@@ -7,17 +7,35 @@
 					<h5>Estado: <span class="text-primary">{{estadoProceso}}</span> <small class="btn btn-outline-primary border px-2 py-1" @click="abrirModalEstado()"><i class="bi bi-broadcast-pin"></i> Cambiar estado</small></h5>
 					<p class="mb-0"><strong>Antecedentes</strong></p>
 					<div class="my-2" v-html="casoPrevio"></div>
-					<p v-for="documento in documentos" :key="documento.id"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+documento.nombreRuta"> <strong>{{documento.nombreSubida}}</strong></a></p>
-						<p class="text-muted ">Registrado: {{fechaLatam(fechaInicial)}} por <span class="text-capitalize">{{usuario}}</span>.</p>
+					<p class="mb-0"><strong>Documentos adjuntos</strong></p>
+
+					<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
+						<li v-for="(documento, indice) in documentos" :key="documento.id" class="list-group-item d-flex justify-content-between align-items-start">
+							<div class="ms-2 me-auto"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+documento.nombreRuta"> <strong>{{documento.nombreSubida}}</strong></a></div>
+							<a href="#!" v-if="nivel==1" @click="sustituir(indice)"><span class="badge bg-success rounded-pill mx-2"><i class="bi bi-sd-card"></i></span></a>
+							<a href="#!" v-if="nivel==1" @click="borrarDocumento(indice)"><span class="badge bg-danger rounded-pill"><i class="bi bi-x"></i></span></a>
+						</li>
+					</ul>
+					<p class="text-muted ">Registrado: {{fechaLatam(fechaInicial)}} por <span class="text-capitalize">{{usuario}}</span>.</p>
 				</div>
 			</div>
-			<div class="bloqueCaso iteracion ps-4 border-bottom" v-for="iteracion in iteraciones" :key="iteracion.id">
+		
+			<div class="bloqueCaso iteracion ps-4 border-bottom" v-for="(iteracion, indiceInt) in iteraciones" :key="iteracion.id">
+				
 				<div class="p-4 pb-2 " >
 					<p class="mb-0"> <i class="bi bi-arrow-bar-right"></i> <strong>Iteracción: {{iteracion.titulo}}</strong></p>
 					<div class="my-2" v-html="iteracion.contenido.replace(/(?:\r\n|\r|\n)/g, '<br />')"></div>
 						<p v-if="iteracion.link!=''"><i class="bi bi-paperclip"></i>Adjunto: <a class="text-decoration-none" :href="'/documentos/'+iteracion.link"> <strong>{{iteracion.adjunto}}</strong></a></p>
 			
 						<p class="text-muted ">Registrado: {{fechaLatam(iteracion.fecha)}} por <span class="text-capitalize">{{iteracion.nomUsuario}}</span></p>
+
+						<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
+							<li v-for="(archivos, indice) in iteracion.archivos" class="list-group-item d-flex justify-content-between align-items-start">
+								<div class="ms-2 me-auto"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+archivos.nombreRuta"> <strong>{{archivos.nombreSubida}}</strong></a></div>
+								<a href="#!" v-if="nivel==1" @click="borrarDocumentoInteracion(indiceInt, indice, iteracion.id)"><span class="badge bg-danger rounded-pill"><i class="bi bi-x"></i></span></a>
+							</li>
+						</ul>
+				
 				</div>
 			</div>
 
@@ -62,9 +80,17 @@
 						  <textarea class="form-control" id="floAsunto" style="height: 100px" placeholder=" " v-model="nContenido"></textarea>
 							<label for="floAsunto">Argumento</label>
 						</div>
-						<div class="mb-3">
+						<!-- <div class="mb-3">
 						  <label for="formFile" class="form-label">Adjuntar archivo</label>
 						  <input class="form-control" type="file" id="txtArchivo" ref="archivo" @change="habilitarDoc()">
+						</div> -->
+						<div class="input-group mb-3">
+							<input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
+							<button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+						</div>
+
+						<div v-if="documentosInt.length>=1">
+							<p class="mb-0 " v-for="documentoInt in documentosInt" :key="documentoInt.id"><span class="text-danger"><i class="bi bi-file-earmark-excel"></i> </span> <a :href="'documentos/'+documentoInt.nombreRuta">{{documentoInt.nombreSubida}}</a></p>
 						</div>
 						<div class="text-end">
 							<button class="btn btn-outline-success mx-1" @click="registrarIteracion()"><i class="bi bi-command"></i> Registrar iteracción</button>
@@ -103,23 +129,47 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modalSustituir" tabindex="-1">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="btn-close float-end" data-bs-dismiss="modal" aria-label="Close"></button>
+						<h5 class="modal-title mb-2">Sustituir archivo</h5>
+						<p>Estas por actualizar tu archivo a una nueva versión</p>
+						<p><strong>Archivo:</strong> {{ sustituto.nombreSubida }}</p>
+						<hr>
+						<p>Selecciona el nuevo archivo a cambiar</p>
+						<input type="file" class="form-control" id="archivoNuevo" ref="archivoNuevo">
+					
+						<div class="text-end mt-2">
+							<button class="btn btn-outline-success mx-1" @click="cambiarArchivo()"><i class="bi bi-sd-card"></i> Intercambiar archivo</button>
+						</div>
+
+						
+					</div>
+				</div>
+			</div>
+		</div>
+
 	</div>
 </template>
 
 <script>
-var modalInteraccion, modalNuevoEstado;
+var modalInteraccion, modalNuevoEstado, modalSustituir;
 export default {
 	name: 'DetalleProcesos',
 	data(){ return {
 		titulo: '', casoPrevio:'', ruta:'', documento:'', fechaInicial:'', usuario:'',
 		pagos:false, todosPagos:[], iteraciones:[],
-		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[]
+		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[], documentosInt:[], nivel:3, sustituto:[], queIndice:-1
 		}
 	},
 	mounted(){
 		moment.locale('es');
 		modalInteraccion = new bootstrap.Modal(document.getElementById('modalInteraccion'))
 		modalNuevoEstado = new bootstrap.Modal(document.getElementById('modalNuevoEstado'))
+		modalSustituir = new bootstrap.Modal(document.getElementById('modalSustituir'))
+		this.nivel = localStorage.getItem('nivel');
 		//Muestra el ID por Router
 		//console.log( this.$route.params.id );
 		axios.post(this.nombreApi + '/solicitarCabeceraProceso.php', { id: this.$route.params.id})
@@ -141,10 +191,22 @@ export default {
 			axios.post(this.nombreApi+'/mostrarIteracionesxID.php', { idProceso: this.$route.params.id})
 			.then((response)=>{ console.log( response.data );
 				this.iteraciones = response.data;
+
+				this.iteraciones.forEach((itera, index)=>{
+					if(itera.archivos!=''){
+						this.iteraciones[index].archivos = JSON.parse(JSON.parse(itera.archivos))
+					}else{
+						this.iteraciones[index].archivos = [];
+					}
+					
+				})
+				
 			})
 			.catch((error)=>{ console.log( error );});
+			
 		},
 		abrirInteracion(){
+			this.documentosInt = [];
 			modalInteraccion.show();
 		},
 		volverCasos(){
@@ -176,57 +238,18 @@ export default {
 			else{ return true; }
 		},
 		registrarIteracion(){
-			let nombreSubida='', nombreRuta='';
-			let that = this;
 			if( this.evaluarCampos() ){
-				if( document.getElementById("txtArchivo").files.length==0){
-					//Guardar sin archivo
-					console.log( 'sin archivo' );
-					this.mandarDatos(nombreSubida,nombreRuta);
-				}else{
-					//guardar con archivo
-					console.log( 'con archivo' );
-
-
-					let formData = new FormData();
-					formData.append('archivo', this.nArchivo);
-					formData.append('ruta', this.rutaDocs ); //this.rutaDocs
-					axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
-						headers: {
-							'Content-Type' : 'multipart/form-data'
-						}
-					}).then( function (response){
-						console.log( response.data );
-						if( response.data =='Error subida' ){
-							nombreSubida='';
-							nombreRuta='';
-							that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
-							//console.log( 'err1' );
-						}else{ //subió bien
-							nombreSubida=document.getElementById("txtArchivo").files[0].name;
-							nombreRuta = response.data;
-							that.mandarDatos(nombreSubida, nombreRuta);
-							console.log( 'subio correcto' );
-						}
-	
-					}).catch(function(){
-						//console.log( 'err2' );
-						that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
-					})
-					
-	
-				}
+				this.mandarDatos();
 			}
 		},
-		mandarDatos(nomArchivo, ruta){
+		mandarDatos(){
 			
 			axios.post(this.nombreApi + '/insertarIteracion.php', {
 				idProceso: this.$route.params.id,
 				idUsuario: localStorage.idUsuario,
 				titulo: this.nAsunto,
 				contenido: this.nContenido,
-				adjunto: nomArchivo,
-				link: ruta
+				archivos: JSON.stringify(this.documentosInt),
 			})
 			.then((response)=>{ console.log( response.data );
 				if(!isNaN(response.data)){
@@ -239,8 +262,9 @@ export default {
 						titulo: this.nAsunto,
 						contenido: this.nContenido,
 						nomUsuario: localStorage.nombreUsuario,
-						link: ruta,
-						adjunto: nomArchivo
+						link: '',
+						adjunto:'',
+						archivos: this.documentosInt
 
 					})
 				}
@@ -266,7 +290,124 @@ export default {
 				})
 				.catch((error)=>{ console.log( error );});
 			}
-		}
+		},
+		borrarDocumento(indice){
+			if(confirm(`¿Deseas eliminar el documento ${this.documentos[indice].nombreSubida}?`)){
+				const eliminar = this.documentos[indice].nombreRuta;
+				this.documentos.splice(indice,1);
+	
+				axios.post(this.nombreApi + '/borrarDocumentoProceso.php', {
+					id: this.$route.params.id, documentos: JSON.stringify(this.documentos),eliminar:eliminar
+				})
+				.then(response =>{
+					console.log(response.data);
+						
+					if(response.data =='1'){ this.$emit('mostrarToastBien', 'Documento eliminado'); }else{
+						this.$emit('mostrarToastMal', 'Error borrando el documento');
+					}
+				})
+			}
+		},
+		borrarDocumentoInteracion(indice, index, id){
+			if(confirm(`¿Deseas eliminar el documento ${this.iteraciones[indice].archivos[index].nombreSubida}?`)){
+				const eliminar = this.iteraciones[indice].archivos[index].nombreRuta;
+				this.iteraciones[indice].archivos.splice(index,1);
+
+				axios.post(this.nombreApi + '/borrarDocumentoIteracion.php', {
+					id: id, documentos: JSON.stringify(this.iteraciones[indice].archivos),eliminar:eliminar
+				})
+				.then(response =>{
+					console.log(response.data);
+						
+					if(response.data =='1'){ this.$emit('mostrarToastBien', 'Documento eliminado'); }else{
+						this.$emit('mostrarToastMal', 'Error borrando el documento');
+					}
+				})
+			}
+		},
+		subirANube(){
+			var that = this;
+			this.archivo = this.$refs.archivoFile.files[0];
+			if(document.getElementById("formFile").files.length>0){
+				console.log( 'deberia subir a la nube' );
+
+				let formData = new FormData();
+				formData.append('archivo', this.archivo);
+				formData.append('ruta', this.rutaDocs );
+				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+					headers: {
+						'Content-Type' : 'multipart/form-data'
+					}
+				}).then( function (response){
+					console.log( response.data );
+					if( response.data =='Error subida' ){
+						nombreSubida='';
+						nombreRuta='';
+						that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+						console.log( 'err1' );
+					}else{ //subió bien
+						that.documentosInt.push({
+							nombreSubida : document.getElementById("formFile").files[0].name,
+							nombreRuta : response.data
+						});
+					}
+
+				}).catch(function(ero){
+					console.log( 'err2' + ero );
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+				})
+			}
+		},
+		sustituir(indice){
+			this.sustituto = this.documentos[indice];
+			this.queIndice = indice;
+			modalSustituir.show()
+		},
+		cambiarArchivo(){
+			var that = this;
+			this.archivo = this.$refs.archivoNuevo.files[0];
+			if(document.getElementById("archivoNuevo").files.length>0){
+				console.log( 'deberia subir a la nube' );
+
+				let formData = new FormData();
+				formData.append('archivo', this.archivo);
+				formData.append('ruta', this.rutaDocs );
+				
+				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+					headers: {
+						'Content-Type' : 'multipart/form-data'
+					}
+				}).then( function (response){
+					console.log( response.data );
+					if( response.data =='Error subida' ){
+						
+						that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+						console.log( 'err1' );
+					}else{ //subió bien
+						that.actualizarReemplazo(document.getElementById("archivoNuevo").files[0].name, response.data);
+					}
+
+				}).catch(function(ero){
+					console.log( 'err2' + ero );
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+				})
+			}
+		},
+		actualizarReemplazo(nombre, ruta){
+			const eliminar = this.documentos[this.queIndice].nombreRuta;
+			this.documentos[this.queIndice].nombreRuta = ruta;
+			this.documentos[this.queIndice].nombreSubida = nombre;
+			
+			axios.post(this.nombreApi + '/borrarDocumentoProceso.php', {
+				id: this.$route.params.id, documentos: JSON.stringify(this.documentos),eliminar:eliminar
+			})
+			.then(response =>{
+				if(response.data =='1'){ this.$emit('mostrarToastBien', 'Documento actualizado'); }else{
+					this.$emit('mostrarToastMal', 'Error borrando el documento');
+				}
+				modalSustituir.hide();
+			})
+		},
 	}
 }
 </script>
@@ -274,5 +415,5 @@ export default {
 .text-block {
     white-space: pre;
 }
-
+.bg-success{background-color:#2dc11b!important}
 </style>
