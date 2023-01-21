@@ -71,8 +71,8 @@
 				
 						<label for="" class="my-2"><small><strong>Datos del pago:</strong></small></label>
 						
-						<div class="row">
-							<div class="col-6">
+						<div class="row row-cols-3">
+							<div class="col">
 								<div class="form-floating mb-3">
 									<select class="form-select" id="floPagos" @change="cambioPago($event)">
 										<option selected>Seleccione un tipo</option>
@@ -83,24 +83,25 @@
 									<label for="floPagos">Tipo de pago</label>
 								</div>
 							</div>
-							<div class="col-6">
+							<div class="col">
 								<div class="form-floating mb-3">
-									<input type="number" class="form-control" id="floMonto" placeholder=" " min=0 v-model="precio">
+									<input type="number" class="form-control" id="floMonto" placeholder=" " min=0 v-model="precio" @change="cambiarFechaInicial()">
 									<label for="floMonto">Monto (S/)</label>
+								</div>
+							</div>
+							<div class="col" v-if="verExtras">
+								<div class="form-floating mb-3">
+									<input type="number" class="form-control" id="floCuotas" placeholder=" " v-model="numCuotas" @change="cambiarFechaInicial()">
+									<label for="floCuotas">N° de cuotas</label>
 								</div>
 							</div>
 						</div>
 						
-						<div class="row row-cols-3 mt-3 d-none" id="divDetallePagos">
-							<div class="col">
-								<div class="form-floating mb-3">
-									<input type="number" class="form-control" id="floCuotas" placeholder=" " v-model="numCuotas">
-									<label for="floCuotas">N° de cuotas</label>
-								</div>
-							</div>
+						<div class="row row-cols-3 mt-1 d-none" id="divDetallePagos">
+							
 							<div class="col">
 								<div class="form-floating">
-									<select class="form-select" id="floatingSelect" v-model="plazos">
+									<select class="form-select" id="floatingSelect" v-model="plazos" @change="cambiarFechaInicial()">
 										<option selected>Plazos</option>
 										<option value="1">Diario</option>
 										<option value="2">Semanal</option>
@@ -112,11 +113,34 @@
 							</div>
 							<div class="col">
 								<div class="form-floating mb-3">
-									<input type="date" class="form-control" id="floCuotas" placeholder=" " v-model="fecha">
+									<input type="date" class="form-control" id="floCuotas" placeholder=" " v-model="fecha" @change="cambiarFechaInicial()">
 									<label for="floCuotas">Inicio de pago</label>
 								</div>
 							</div>
+							<div class="col">
+								<button class="btn btn-outline-primary border-0" @click="expandirFechas()"><i class="bi bi-caret-down"></i> Asignar fechas</button>
+							</div>
 
+						</div>
+						<div class="row" v-show="verFechas">
+							<div class="col">
+								<p>Cuotas y fechas programadas</p>
+								<table class="table table-hover">
+									<tbody >
+										<tr v-for="(fechitas, index) in fechas">
+											<td>
+												Cuota {{index+1}}
+											</td>
+											<td>
+												<input class="form-control" type="date" v-model="fechitas.fecha">
+											</td>
+											<td>
+												<input class="form-control" type="number" v-model="fechitas.monto">
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
 						</div>
 
 						<div class="text-end"> <!-- d-flex justify-content-between -->
@@ -201,7 +225,7 @@ export default {
 			fecha: null, clienteBuscar:'', dniElegido:'', nombreELegido:'', cliElegido:'',
 			elegidos:[], numCuotas: null, plazos:null, chkDocumentos:false, precio:0,
 			caso:'', antecedentes:'', codigo:null, archivo:'', documentos:[],
-			procesos:[]
+			procesos:[], cuotas:[], verExtras:false, verFechas:false, fechas:[]
 		}
 	},
 	mounted(){
@@ -268,21 +292,24 @@ export default {
 		},
 		cambioPago(e){
 			let tip = e.target.value
-			console.log('tipo', tip);
+			//console.log('tipo', tip);
+			this.verFechas=false;
 			var divPagos = document.getElementById('divDetallePagos');
 			if(tip =='1'){
 				this.numCuotas=1;
 				divPagos.classList.add('d-none')
+				this.verExtras = false;
 			}else if(tip =='2'){
 				divPagos.classList.remove('d-none')
+				this.verExtras = true;
 			}else if(tip =='3'){
 				this.numCuotas=1;
 				divPagos.classList.add('d-none')
+				this.verExtras = false;
 			}
 		},
 		crearProceso(){
 			let nombreSubida='', nombreRuta='';
-			
 			
 			if(this.evaluarCampos()){
 						this.mandarDatos(nombreSubida, nombreRuta);
@@ -343,7 +370,8 @@ export default {
 				fecha: this.fecha,
 				idUsuario: localStorage.idUsuario,
 				nombreSubida, nombreRuta,
-				documentos: this.documentos
+				documentos: this.documentos,
+				fechas: this.fechas
 			})
 			.then((response)=>{ console.log( response.data );
 				if(Number.isInteger(response.data)){
@@ -380,8 +408,45 @@ export default {
 		},
 		fechaHace(fe){
 			return moment(fe).fromNow();
-			
-		}
+		},
+		expandirFechas(){
+			if(this.precio==0){
+				this.$emit('mostrarToastMal', 'El precio debe ser diferente de 0'); return false;
+			}else if(this.numCuotas=='' || this.numCuotas==0 ){
+				this.$emit('mostrarToastMal', 'Debe ingresar un número de cuotas mayor a 1'); return false;
+			}
+			else if(this.plazos== null || this.plazos=='' || this.plazos=='Plazos' ){
+				this.$emit('mostrarToastMal', 'Especifique un tipo de plazo: diario, mensual, etc'); return false;
+			}else if(this.fecha==null || this.fecha==''){
+				this.$emit('mostrarToastMal', 'Especifique una fecha inicial'); return false;
+			}else{
+				this.verFechas=true;
+				this.fechas=[];
+				let queFecha = this.fecha;
+				let queMonto = parseFloat(this.precio /this.numCuotas).toFixed(2);
+				for(let i=0; i<this.numCuotas;i++){
+					this.fechas.push({
+						fecha: moment(queFecha).format('YYYY-MM-DD'),
+						fechaLat: moment(queFecha).format('DD/MM/YYYY'),
+						monto: queMonto
+					})
+					switch(this.plazos){
+						case '1': queFecha = moment(queFecha).add(1, 'd' ); break;
+						case '2': queFecha = moment(queFecha).add(7, 'd' ); break;
+						case '3': queFecha = moment(queFecha).add(1, 'M' ); break;
+						case '4': queFecha = moment(queFecha).add(1, 'y' ); break;
+					}
+					//
+
+				}
+			}
+		},
+		cambiarFechaInicial(){
+			if(this.verFechas){
+				this.expandirFechas()
+			}
+		},
+
 	},
 }
 </script>

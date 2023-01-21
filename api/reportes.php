@@ -10,6 +10,7 @@ switch($_POST['tipo']){
 	case 'R5': procesosRegistrados($db,4); break;
 	case 'R6': deudasPendientes($db); break;
 	case 'R7': procesosPagados($db); break;
+	case 'R8': todoCajas($db); break;
 }
 
 
@@ -176,6 +177,78 @@ function procesosPagados($db){
 				}
 				?>
 			</tbody>
+		</table>
+		<?php
+	}else{
+		echo -1;
+	}
+}
+
+function todoCajas($db){
+	$ingresos =0; $salidas=0;
+	$sql = $db->prepare("SELECT c.*, u.nombres, tm.descripcion, m.moneda, date_format(c.registro, '%d/%m/%Y %h:%i %p') as hora FROM `caja` c
+	inner join usuario u on u.id = c.idUsuario
+	inner join tipomovimiento tm on c.idMovimiento = tm.id
+	inner join moneda m on m.id = c.idMoneda
+	where  c.activo = 1 and c.registro BETWEEN ? and ? ;");
+	
+	if($sql->execute([ 
+		$_POST['fecha1'], $_POST['fecha2']
+		])){ $i=0;
+		?>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>N°</th>
+					<th>Usuario</th>
+					<th>Fecha caja</th>
+					<th>Movimiento</th>
+					
+					<th>Monto</th>
+					<th>Moneda</th>
+					<th>Concepto/Obs.</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				while($row=$sql->fetch(PDO::FETCH_ASSOC)){
+					switch( $row['idMovimiento']){
+						case '2': case '3': case '4': case '7':
+							$ingresos+=floatval($row['monto']); break;
+						case '5':
+							$salidas+=floatval($row['monto']); break;
+					}
+				?>
+				<tr>
+					<td><?= $i+1;?></td>
+					<td><?= $row['nombres'];?></td>
+					<td><?= $row['hora'];?></td>
+					<td><?= $row['descripcion'];?></td>
+					<td>
+						<span><?= $row['idMovimiento']=='5' ? '-': '+' ; ?></span>
+						<span><?= $row['monto'];?></span>
+					</td>
+					<td><?= $row['moneda'];?></td>
+					<td><?= $row['observaciones'];?></td>
+				</tr>
+				<?php $i++;
+				}
+				?>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="3"></td>
+					<td>Suma Ingresos</td>
+					<td><?= $ingresos; ?></td>
+					<td colspan="2"></td>
+				</tr>
+				<tr>
+					<td colspan="3"></td>
+					<td>Suma Salidas</td>
+					<td><?= $salidas; ?></td>
+					<td colspan="2"></td>
+				</tr>
+			</tfoot>
 		</table>
 		<?php
 	}else{

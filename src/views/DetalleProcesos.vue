@@ -32,6 +32,7 @@
 						<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
 							<li v-for="(archivos, indice) in iteracion.archivos" class="list-group-item d-flex justify-content-between align-items-start">
 								<div class="ms-2 me-auto"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+archivos.nombreRuta"> <strong>{{archivos.nombreSubida}}</strong></a></div>
+								<a href="#!" v-if="nivel==3" @click="sustituirIteracion(indiceInt, indice, iteracion.id)"><span class="badge bg-warning rounded-pill mx-2"><i class="bi bi-sd-card"></i></span></a>
 								<a href="#!" v-if="nivel==1" @click="borrarDocumentoInteracion(indiceInt, indice, iteracion.id)"><span class="badge bg-danger rounded-pill"><i class="bi bi-x"></i></span></a>
 							</li>
 						</ul>
@@ -55,7 +56,10 @@
 				      <small v-if="pago.estado==1" class="text-danger"><strong><i class="bi bi-x"></i> {{pago.descripcion}}</strong></small>
 				      <small v-else class="text-primary"><strong><i class="bi bi-check2"></i> {{pago.descripcion}}</strong></small>
 				    </div>
-				    <small v-if="pago.estado==1">Retraso: {{fechaHace(pago.fecha)}} </small>
+				    <small v-if="pago.estado==1">
+							<span v-if="pago.diferencia">Pendiente {{fechaHace(pago.fecha)}}</span>
+							<span v-else="pago.diferencia">Retraso {{fechaHace(pago.fecha)}}</span>
+						</small>
 				    <small v-else> Realizado el: {{fechaLatamSinHora(pago.fecha)}}</small>
 				  </a>
 				  
@@ -150,18 +154,39 @@
 				</div>
 			</div>
 		</div>
+		<div class="modal fade" id="modalSustituirIteracion" tabindex="-1">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="btn-close float-end" data-bs-dismiss="modal" aria-label="Close"></button>
+						<h5 class="modal-title mb-2">Sustituir archivo de iteracion</h5>
+						<p>Estas por actualizar tu archivo a una nueva versión</p>
+						<p><strong>Archivo:</strong> {{ sustituto.nombreSubida }}</p>
+						<hr>
+						<p>Selecciona el nuevo archivo a cambiar</p>
+						<input type="file" class="form-control" id="archivoNuevoIteracion" ref="archivoNuevoIteracion">
+					
+						<div class="text-end mt-2">
+							<button class="btn btn-outline-success mx-1" @click="cambiarArchivoIteracion()"><i class="bi bi-sd-card"></i> Intercambiar archivo</button>
+						</div>
+
+						
+					</div>
+				</div>
+			</div>
+		</div>
 
 	</div>
 </template>
 
 <script>
-var modalInteraccion, modalNuevoEstado, modalSustituir;
+var modalInteraccion, modalNuevoEstado, modalSustituir, modalSustituirIteracion;
 export default {
 	name: 'DetalleProcesos',
 	data(){ return {
 		titulo: '', casoPrevio:'', ruta:'', documento:'', fechaInicial:'', usuario:'',
 		pagos:false, todosPagos:[], iteraciones:[],
-		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[], documentosInt:[], nivel:3, sustituto:[], queIndice:-1
+		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[], documentosInt:[], nivel:3, sustituto:[], queIndice:-1, queIteracion:-1, queId:-1
 		}
 	},
 	mounted(){
@@ -169,6 +194,7 @@ export default {
 		modalInteraccion = new bootstrap.Modal(document.getElementById('modalInteraccion'))
 		modalNuevoEstado = new bootstrap.Modal(document.getElementById('modalNuevoEstado'))
 		modalSustituir = new bootstrap.Modal(document.getElementById('modalSustituir'))
+		modalSustituirIteracion = new bootstrap.Modal(document.getElementById('modalSustituirIteracion'))
 		this.nivel = localStorage.getItem('nivel');
 		//Muestra el ID por Router
 		//console.log( this.$route.params.id );
@@ -363,6 +389,13 @@ export default {
 			this.queIndice = indice;
 			modalSustituir.show()
 		},
+		sustituirIteracion(iteracion, indice, id){
+			this.sustituto = this.iteraciones[iteracion].archivos[indice];
+			this.queIndice = indice;
+			this.queIteracion = iteracion;
+			this.queId = id;
+			modalSustituirIteracion.show()
+		},
 		cambiarArchivo(){
 			var that = this;
 			this.archivo = this.$refs.archivoNuevo.files[0];
@@ -393,6 +426,36 @@ export default {
 				})
 			}
 		},
+		cambiarArchivoIteracion(){
+			var that = this;
+			this.archivo = this.$refs.archivoNuevoIteracion.files[0];
+			if(document.getElementById("archivoNuevoIteracion").files.length>0){
+				console.log( 'deberia subir a la nube' );
+
+				let formData = new FormData();
+				formData.append('archivo', this.archivo);
+				formData.append('ruta', this.rutaDocs );
+				
+				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+					headers: {
+						'Content-Type' : 'multipart/form-data'
+					}
+				}).then( function (response){
+					console.log( response.data );
+					if( response.data =='Error subida' ){
+						
+						that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+						console.log( 'err1' );
+					}else{ //subió bien
+						that.actualizarReemplazoIteracion(document.getElementById("archivoNuevoIteracion").files[0].name, response.data);
+					}
+
+				}).catch(function(ero){
+					console.log( 'err2' + ero );
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+				})
+			}
+		},
 		actualizarReemplazo(nombre, ruta){
 			const eliminar = this.documentos[this.queIndice].nombreRuta;
 			this.documentos[this.queIndice].nombreRuta = ruta;
@@ -406,6 +469,21 @@ export default {
 					this.$emit('mostrarToastMal', 'Error borrando el documento');
 				}
 				modalSustituir.hide();
+			})
+		},
+		actualizarReemplazoIteracion(nombre, ruta){
+			const eliminar = this.iteraciones[this.queIteracion].archivos[this.queIndice].nombreRuta;
+			this.iteraciones[this.queIteracion].archivos[this.queIndice].nombreRuta = ruta;
+			this.iteraciones[this.queIteracion].archivos[this.queIndice].nombreSubida = nombre;
+			
+			axios.post(this.nombreApi + '/borrarDocumentoIteracion.php', {
+				id: this.queId, documentos: JSON.stringify(this.iteraciones[this.queIndice].archivos),eliminar:eliminar
+			})
+			.then(response =>{
+				if(response.data =='1'){ this.$emit('mostrarToastBien', 'Documento actualizado'); }else{
+					this.$emit('mostrarToastMal', 'Error borrando el documento');
+				}
+				modalSustituirIteracion.hide();
 			})
 		},
 	}

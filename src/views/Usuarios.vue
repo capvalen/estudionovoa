@@ -26,6 +26,7 @@
 							<span v-if="usuario.idTipo==3">Abogado</span>
 						</td>
 						<td>
+							<button class="btn btn-outline-secondary btn-sm border-0" @click="modalClave(usuario.id, usuario.user)"><i class="bi bi-key"></i></button>
 							<button class="btn btn-outline-danger btn-sm border-0" @click="borrar(usuario.id, usuario.user)"><i class="bi bi-x-lg"></i></button>
 						</td>
 					</tr>
@@ -78,22 +79,42 @@
 				</div>
 			</div>
 		</div>
+		<!--modal-->
+		<div class="modal fade" id="modalCambiar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Cambiar contraseña</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<p>Ingrese la nueva contraseña para <strong>{{nombre}}</strong></p>
+						<input type="text" class="form-control" autocomplete ="off" v-model="contrasena">
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-outline-primary" @click="cambiarClave()">Cambiar contraseña</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 	</div>
 </template>
 
 <script>
 
-var modalCrear;
+var modalCrear, modalCambiar;
 export default ({
 	name: 'Usuarios',
 	data() {
 		return{
 			usuarios:[],
-			nombre:'', apellido:'', correo:'', contrasena:'', poder:2
+			nombre:'', apellido:'', correo:'', contrasena:'', poder:2, id:''
 		}
 	},
 	mounted(){
 		modalCrear = new bootstrap.Modal(document.getElementById('modalCrear'))
+		modalCambiar = new bootstrap.Modal(document.getElementById('modalCambiar'))
 		this.cargarDatos();
 	},
 	methods:{
@@ -118,6 +139,30 @@ export default ({
 				.catch((error)=>{ console.log( error );
 					this.$emit('mostrarToastMal', 'Hubo un error al intentar guardar');
 				});
+			}
+		},
+		modalClave(id, nombre){
+			this.id=id,
+			this.nombre = nombre;
+			this.contrasena = '';
+			modalCambiar.show();
+		},
+		cambiarClave(){
+			if(confirm(`¿Es correcto el cambio de clave?`)){
+				axios.post( this.nombreApi+ '/actualizarClave.php', {
+					id: this.id, contrasena: this.contrasena
+				})
+				.then((response)=>{ console.log( response.data );
+					if(response.data=='ok'){
+						this.$emit('mostrarToastBien', 'Clave actualizada con éxito');
+					}else{
+						this.$emit('mostrarToastMal', 'Hubo un error al intentar guardar');
+					}
+				})
+				.catch((error)=>{ console.log( error );
+					this.$emit('mostrarToastMal', 'Hubo un error al intentar guardar');
+				});
+				modalCambiar.hide();
 			}
 		},
 		crearUsuario(e){

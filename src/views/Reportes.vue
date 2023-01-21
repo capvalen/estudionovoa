@@ -3,12 +3,13 @@
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 ">
 			<h4 >Reportes</h4>
 		</div>
-		<div class="container">
+		<div class="container" v-if="nivel==1">
 			<p>Seleccione el tipo de reporte que desee ver:</p>
 			<div class="row">
 				<div class="col col-lg-6">
 					<div class="form-floating">
 						<select class="form-select" id="sltTipoReporte" aria-label=" " @change="cambiarVistas($event)">
+							<option value="R8">Cajas</option>
 							<option value="R1">Ver cajas aperturadas</option>
 							<option value="R6">Deudas pendientes</option>
 							<option value="R5">Procesos concluidos</option>
@@ -34,6 +35,9 @@
 
 			</div>
 		</div>
+		<div v-else>
+			<p class="ms-4">No tiene permiso para ver esta sección</p>
+		</div>
 
 
 	</div>
@@ -47,10 +51,11 @@ export default ({
 	data() {
 		return{
 			verFechas:true,
-			fecha1:null,fecha2:null
+			fecha1:null,fecha2:null, nivel:3
 		}
 	},
 	mounted(){
+		this.nivel = localStorage.getItem('nivel');
 		this.fecha1=moment().format('YYYY-MM-DD')
 		this.fecha2=moment().add(1,'d').format('YYYY-MM-DD')
 	},
