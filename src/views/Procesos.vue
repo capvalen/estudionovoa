@@ -58,8 +58,9 @@
 						
 						<div class="mb-3" v-if="chkDocumentos">
 							<div class="input-group mb-3">
-							  <input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
-							  <button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+							  <input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".pdf, .docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
+							  <button class="btn btn-outline-primary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+							  <button class="btn btn-outline-secondary" type="button" id="button-addon2" @click="limpiarInput()"><i class="bi bi-eraser"></i> Limpiar</button>
 							</div>
 
 							<div v-if="documentos.length>=1">
@@ -222,7 +223,7 @@ export default {
 	name: 'Procesos',
 	data(){
 		return {
-			fecha: null, clienteBuscar:'', dniElegido:'', nombreELegido:'', cliElegido:'',
+			fecha: null, clienteBuscar:'44475064', dniElegido:'', nombreELegido:'', cliElegido:'',
 			elegidos:[], numCuotas: null, plazos:null, chkDocumentos:false, precio:0,
 			caso:'', antecedentes:'', codigo:null, archivo:'', documentos:[],
 			procesos:[], cuotas:[], verExtras:false, verFechas:false, fechas:[]
@@ -308,11 +309,17 @@ export default {
 				this.verExtras = false;
 			}
 		},
-		crearProceso(){
+		async crearProceso(){
 			let nombreSubida='', nombreRuta='';
 			
 			if(this.evaluarCampos()){
+				if(this.chkDocumentos)
+					if( document.getElementById("formFile").files.length>=1 ){
+						let subida = await this.subirANube()
+					}
+
 					this.mandarDatos(nombreSubida, nombreRuta);
+					
 				/* if(this.chkDocumentos){
 					if( document.getElementById("formFile").files.length==0 ){
 					}else{
@@ -331,7 +338,7 @@ export default {
 
 				let formData = new FormData();
 				formData.append('archivo', this.archivo);
-				formData.append('ruta', this.rutaDocs );
+				formData.append('ruta', this.rutaDocs ); 
 				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
 					headers: {
 						'Content-Type' : 'multipart/form-data'
@@ -349,12 +356,18 @@ export default {
 							nombreRuta : response.data
 						});
 					}
+					that.limpiarInput()
 
 				}).catch(function(ero){
 					console.log( 'err2' + ero );
-					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+					this.limpiarInput()
+					return false;
 				})
 			}
+		},
+		limpiarInput(){
+			document.getElementById('formFile').value = ''
 		},
 		mandarDatos(nombreSubida, nombreRuta ){
 			var that = this;
