@@ -1,0 +1,21 @@
+{
+	"files.exclude": {
+		// -------- PERSONALES --------
+		//"api": true,
+		"public": true,
+		"vue.config.js": true,
+		"package.json": true,
+		"package-lock.json": true,
+
+	
+    // -------- PROJECT DIRECTORIES --------
+    "**/.git/": true,
+    "node_modules/": true,
+    "out/": true,
+    "typings/": true,
+
+    // ------- PROJECT FILES -------
+    "LICENSE": true,
+    "README.md": true
+  }
+}
