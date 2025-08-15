@@ -2,14 +2,14 @@
 	<div >
 		<div v-if="loginIn" class="container">
 			<div class="row ">
-				<Menu />
+				<Menu @cerrarSesion='removerSesion()'  />
 				<section class="col-md-8 col-lg-9 border-start border-end p-0" id="segundaColumna">
 					<div class="p-3 d-flex justify-content-between border-bottom d-none d-md-block">
 						<h3 class="mb-0">Sistema - Estudio Novoa</h3>
 					</div>
 					<div id="contenido" class="">
 			
-						<router-view ref="routerVista" @cerrarSesion='cerrarSesion()' @mostrarToastBien="mostrarToastBien" @mostrarToastMal="mostrarToastMal" :monedas="monedas" ></router-view>
+						<router-view ref="routerVista" @cerrarSesion='removerSesion()' @mostrarToastBien="mostrarToastBien" @mostrarToastMal="mostrarToastMal" :monedas="monedas" ></router-view>
 			
 					</div>
 				</section>
@@ -33,11 +33,11 @@
 						<p class="fs-5 text-center">¿Eres personal administrativo?</p>
 						<p class="fs-5 text-center">Ingresa tus credenciales</p>
 						<div class="form-floating mb-3">
-						  <input type="text" class="form-control" id="floUsuario" placeholder=" " autocomplete="off" v-model="userNick">
+						  <input type="text" class="form-control" id="floUsuario" placeholder=" " autocomplete="off" v-model="userNick" @keyup.enter="intentarLog">
 						  <label for="floUsuario">Usuario</label>
 						</div>
 						<div class="form-floating">
-						  <input type="password" class="form-control" id="floPassword" placeholder="Password" autocomplete="off" v-model="userPass">
+						  <input type="password" class="form-control" id="floPassword" placeholder="Password" autocomplete="off" v-model="userPass" @keyup.enter="intentarLog">
 						  <label for="floPassword">Contraseña</label>
 						</div>
 						<div class="d-grid mt-3">
@@ -78,22 +78,19 @@ export default {
 				if( Number.isInteger(response.data.id) ){
 					this.mostrarToastBien('Inicio correctamente');
 					this.loginIn=true;
-					localStorage.loginIn = this.loginIn;
-					localStorage.idUsuario = response.data.id;
-					localStorage.nombreUsuario = response.data.nombre;
-					localStorage.nivel = response.data.tipo;
+					sessionStorage.loginIn = this.loginIn;
+					sessionStorage.idUsuario = response.data.id;
+					sessionStorage.nombreUsuario = response.data.nombre;
+					sessionStorage.nivel = response.data.tipo;
+					sessionStorage.hora = moment().add(8,'h').format('YYYY-MM-DDTHH:mm')
+					const cincoMinutos = 5 * 60 * 1000;
+					setInterval(this.comprobarLogeo , cincoMinutos);
 				}else{
 					this.mostrarToastMal('Datos erróneos');
 				}
 			})
 			.catch((error)=>{ console.log( error );});
 		
-		},
-		cerrarSesion(){
-			this.userNick=''; this.userPass='';
-			this.loginIn=false;
-			localStorage.removeItem('idUsuario');
-			localStorage.loginIn = this.loginIn;
 		},
 		mostrarToastBien(texto){ this.mensaje= texto; toastOk.show(); },
 		mostrarToastMal(texto){ this.mensaje= texto; toastMal.show(); },
@@ -103,20 +100,44 @@ export default {
 				this.monedas=response.data;
 			})
 			.catch((error)=>{ console.log( error );});
+		},
+		removerSesion(){
+			this.userNick=''; this.userPass='';
+			sessionStorage.removeItem('idUsuario');
+			sessionStorage.removeItem('loginIn');
+			sessionStorage.removeItem('nivel');
+			sessionStorage.removeItem('nombreUsuario');
+			sessionStorage.removeItem('nombreUsuario');
+			sessionStorage.removeItem('limite')
+			sessionStorage.removeItem('hora')			
+			this.loginIn=false;
+		},
+		comprobarLogeo(){
+			console.log('check log')
+			var ahora = moment(); // Hora actual
+			var limite = moment( sessionStorage.getItem('hora') );
+
+			if (ahora.isBefore(limite)) {
+					//pasa a usar el sistema
+			} else {
+					this.removerSesion()
+			}
 		}
-		
-		
 	},
 	mounted(){
+		//let ahora = moment()
 		tostadaBuena = document.getElementById('tostadaBien'); toastOk = new bootstrap.Toast(tostadaBuena)
 		tostadaMala = document.getElementById('tostadaMal'); toastMal = new bootstrap.Toast(tostadaMala)
-		
-		//console.log( localStorage.loginIn );
-		if( localStorage.loginIn =='true' ){
-			this.loginIn=true;
+
+		if ( sessionStorage.getItem('hora') == null){
+			this.removerSesion()
+			return false;
 		}else{
-			this.loginIn=false;
-		}
+			this.loginIn = true
+			const cincoMinutos = 5 * 60 * 1000;
+			setInterval(this.comprobarLogeo , cincoMinutos);
+		}	
+		
 		this.cargarMonedas();
 		
 	},
@@ -136,7 +157,7 @@ export default {
 	#primeraColumna i{font-size: 1.7rem;}
 	#spanBusqueda{ cursor:pointer; width: 2rem; height: 2rem;}
 	#spanBusqueda:hover, .divContenido:hover{
-		background-color: #dbdbdb9e; cursor:pointer;
+		background-color: #2424249e; cursor:pointer;
 	}
 	#spanBusqueda:hover i{
 		color:white;
@@ -175,5 +196,8 @@ export default {
 	#btnAcceder{
 		background-color: #47af01;
     border: 1px solid #59a029;
+	}
+	.breadcrumb-item + .breadcrumb-item::before {
+		font-family: bootstrap-icons !important;
 	}
 </style>

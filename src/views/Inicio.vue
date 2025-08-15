@@ -56,7 +56,7 @@ export default {
 			this.$emit('cerrarSesion');
 		},
 		returnNombreUsuario(){
-			return localStorage.getItem('nombreUsuario')
+			return sessionStorage.getItem('nombreUsuario')
 		}
 	},
 	mounted(){

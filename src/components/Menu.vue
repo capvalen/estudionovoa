@@ -22,7 +22,7 @@
 			<router-link class="fs-5 text-decoration-none my-2" to="/clientes">
 				<i class="bi bi-person-bounding-box"></i> <span class="ps-3">Clientes</span>
 			</router-link>
-			<router-link class="fs-5 text-decoration-none my-2" to="/procesos">
+			<router-link class="fs-5 text-decoration-none my-2" :class="{'active': queRuta('detalleProcesos')}" to="/procesos">
 				<i class="bi bi-inboxes"></i> <span class="ps-3">Procesos</span>
 			</router-link>
 			<router-link class="fs-5 text-decoration-none my-2" to="/usuarios">
@@ -34,6 +34,9 @@
 			<router-link class="fs-5 text-decoration-none my-2" to="/configuraciones">
 				<i class="bi bi-gear"></i> <span class="ps-3">Configuraciones</span>
 			</router-link>
+			<a class="fs-5 text-decoration-none my-2" href="/" @click="salir()">
+				<i class="bi bi-door-open"></i> <span class="ps-3">Cerrar sistema</span>
+			</a>
 
 			<!-- Perfil, configuraciones, modo oscuro, ayuda y soporte técnico -->
 		</section>
@@ -48,6 +51,13 @@ export default {
 		mostrarSub(){
 			var sub = document.getElementById('primeraColumna')
 			sub.classList.remove('d-none')
+		},
+		queRuta(pagina){
+			return this.$route.name == pagina
+		},
+		salir(){
+			//$event.preventDefault();
+			this.$emit('cerrarSesion');
 		}
 	}
 	

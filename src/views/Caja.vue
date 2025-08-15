@@ -279,7 +279,7 @@ export default {
 	mounted(){
 		moment.locale('es');
 		//this.monedas.forEach(mone=>{ mone.suma=0; });
-		this.nivel = localStorage.getItem('nivel');
+		this.nivel = sessionStorage.getItem('nivel');
 
 		if(this.nivel !='3'){
 			modalAbrirCaja = new bootstrap.Modal(document.getElementById('modalAbrirCaja'));
@@ -306,12 +306,12 @@ export default {
 			modalAbrirCaja.show();
 		},
 		aperturarCaja(){
-			axios.post(this.nombreApi + '/abrirCaja.php', {monto: this.montoInicial, usuario: localStorage['idUsuario']})
+			axios.post(this.nombreApi + '/abrirCaja.php', {monto: this.montoInicial, usuario: sessionStorage['idUsuario']})
 			.then((response)=>{ //console.log( response.data );
 				if(Number.isInteger(response.data)){
 					this.idCaja = response.data;
 					this.cajaAbierta=true;
-					this.quienAbrio=localStorage.nombreUsuario;
+					this.quienAbrio=sessionStorage.nombreUsuario;
 					this.cuandoAbrio=moment();
 					modalAbrirCaja.hide();
 					this.cargarDatosCaja();
@@ -377,7 +377,7 @@ export default {
 					queIngreso: this.queIngreso,
 					monto: this.eMonto,
 					detalle:this.eDetalle,
-					idUsuario: localStorage.idUsuario,
+					idUsuario: sessionStorage.getItem('idUsuario'),
 					moneda: this.queMoneda
 				})
 				.then((response)=>{ console.log( response.data );
@@ -517,7 +517,7 @@ export default {
 						queIngreso: 2, //cuota pagada
 						monto: idInmediato,
 						detalle:this.casoDetalle,
-						idUsuario: localStorage.idUsuario,
+						idUsuario: sessionStorage.getItem('idUsuario'),
 						moneda: this.queMoneda
 					})
 					.then((response)=>{ console.log( response.data );

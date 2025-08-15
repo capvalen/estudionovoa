@@ -1,8 +1,11 @@
 <template>
 	<div>
-		<span class="d-flex align-items-center justify-content-center rounded-circle ms-4" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Buscar " id="spanBusqueda" @click="abrirBuscador()"><i class="bi bi-search"></i></span>
-		<div class="modal" tabindex="-1" id="modalBuscar">
-			<div class="modal-dialog" >
+		<!-- Boton display -->
+		<span class="d-flex align-items-center justify-content-center rounded-circle ms-4" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Buscar" id="spanBusqueda" @click="abrirBuscador()"><i class="bi bi-search"></i></span>
+
+		<!-- modal al hacer click -->
+		<div class="modal fade" tabindex="-1" id="modalBuscar">
+			<div class="modal-dialog modal-dialog-centered" >
 				<div class="modal-content">
 					<div class="modal-body">
 						<div class="d-flex">
@@ -11,9 +14,9 @@
 						</div>
 
 						<p class="my-1">Término a buscar:</p>
-						<input type="text" class="form-control form-control-lg" v-model="texto" @keyup.enter="buscar" >
+						<input type="text" class="form-control form-control-lg text-center" v-model="texto" @keyup.enter="buscar" >
 						<div class="d-grid gap-1 my-2">
-							<button class="btn btn-outline-primary btn-block" @click="buscar">Buscar</button>
+							<button class="btn btn-outline-primary btn-block" @click="buscar"><i class="bi bi-search"></i> Realizar búsqueda</button>
 						</div>
 					</div>
 					
@@ -47,3 +50,5 @@ export default {
 	}
 }
 </script>
+<style scoped>
+</style>

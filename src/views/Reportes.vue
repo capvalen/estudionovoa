@@ -55,7 +55,7 @@ export default ({
 		}
 	},
 	mounted(){
-		this.nivel = localStorage.getItem('nivel');
+		this.nivel = sessionStorage.getItem('nivel');
 		this.fecha1=moment().format('YYYY-MM-DD')
 		this.fecha2=moment().add(1,'d').format('YYYY-MM-DD')
 	},

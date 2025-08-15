@@ -57,7 +57,7 @@ export default {
 				let datos = new FormData();
 				datos.append('anterior', this.anterior)
 				datos.append('nueva', this.nueva)
-				datos.append('idUsuario', localStorage.idUsuario)
+				datos.append('idUsuario', sessionStorage.getItem('idUsuario'))
 				
 				let respServ = await fetch( this.nombreApi +"/cambiarClave.php",{
 					method:'POST', body: datos

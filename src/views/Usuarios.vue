@@ -1,5 +1,16 @@
 <template>
 	<div>
+		<div class="row ms-2">
+			<div class="col">
+				<nav style="--bs-breadcrumb-divider: '\F285';" aria-label="breadcrumb">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="/"><i class="bi bi-house"></i></a></li>
+						<li class="breadcrumb-item active" aria-current="page">Usuarios</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
+
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 ">
 			<h4 >Usuarios</h4>
 			<button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalCrear"><i class="bi bi-pin-angle"></i> Nuevo</button>

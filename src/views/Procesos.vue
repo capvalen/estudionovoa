@@ -1,24 +1,38 @@
 <template>
 	<div>
+		<div class="row ms-2">
+			<div class="col">
+				<nav style="--bs-breadcrumb-divider: '\F285';" aria-label="breadcrumb">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="/"><i class="bi bi-house"></i></a></li>
+						<li class="breadcrumb-item active" aria-current="page">Procesos</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
 		<div class="d-flex justify-content-between align-items-center py-2 px-4 ">
 			<h4 >Procesos</h4>
-			<button class="btn btn-outline-secondary" @click="crearModal"><i class="bi bi-pin-angle"></i> Nuevo</button>
+			<div class="d-flex">
+				<button class="btn btn-outline-secondary" @click="crearModal"><i class="bi bi-pin-angle"></i> Nuevo</button>
+				<Buscador ref="compBuscador" @buscar="consultar" />
+			</div>
 		</div>
 		<div class="py-2 px-4 border-bottom">
 			<span>Últimos casos registrados</span>
 		</div>
 
 		<div id="resultadoProcesos">
-			<div class="py-2 px-4 border-bottom" v-for="proceso in procesos" :key="proceso.id">
+			<div class="py-2 px-4 border-bottom" v-for="(proceso, index) in procesos" :key="proceso.id">
 				<span class="float-end"><small>{{fechaHace(proceso.registrado)}}</small></span>
 				<router-link :to="{name:'detalleProcesos', params: {id: proceso.id}}" tag="span" class="text-decoration-none">
-					<p class="text-primary"><i class="bi bi-box-arrow-in-right"></i> <strong class="text-capitalize">{{proceso.caso}}</strong></p>
+					<p class="text-primary"><span>{{ index+1 }}.</span> <i class="bi bi-box-arrow-in-right"></i> <strong class="text-capitalize">{{proceso.caso}}</strong></p>
 				</router-link>
-				<p>De: <strong class="text-capitalize">{{proceso.nomCliente}}</strong></p>
-				<p>Estado: <span class="text-muted">{{proceso.estadoProceso}}</span></p>
+				<p>Cliente: <strong class="text-capitalize">{{proceso.nomCliente}}</strong></p>
+				<div class="d-flex justify-content-between">
+					<p>Código: <span class="text-capitalize text-muted">{{queCodigo(proceso.codigo)}}</span></p>
+					<p><small><span class="text-muted">{{proceso.estadoProceso}}</span></small></p>
+				</div>
 			</div>
-		
-		
 		</div>
 
 		<div class="modal fade" id="modalCrear" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -38,10 +52,14 @@
 							<h5>Cliente: <small class="text-muted">{{nombreELegido}}</small></h5>
 						</div>
 						<label class="mb-2"><strong><small>Datos del Caso:</small></strong></label>
-
 						<div class="form-floating mb-3">
 							<input type="text" class="form-control" id="floCaso" placeholder="razon" v-model="caso" autocomplete="off">
 							<label for="floCaso">Caso</label>
+						</div>
+						<label class="mb-2"><strong><small>Código personalizado:</small></strong></label>
+						<div class="form-floating mb-3">
+							<input type="text" class="form-control" id="floCodigo" placeholder="codigo" v-model="codigo" autocomplete="off">
+							<label for="floCaso">Código</label>
 						</div>
 						<div class="form-floating mb-3">
 							<textarea class="form-control" id="floAntecedentes" style="height: 100px" placeholder=" " v-model="antecedentes"></textarea>
@@ -192,7 +210,9 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<p class="mb-0 mt-1 text-center text-muted">Código de pago:</p>
-				<h4 class="text-center text-primary display-5">CS-{{codigo}}</h4>
+				<a :href="'procesos/detalle/'+codigo" class="text-decoration-none">
+					<h4 class="text-center text-primary display-5">CS-{{codigo}}</h4>
+				</a>
 				<p class="text-center text-muted">Se realizó el registro para el Cliente: <strong>{{nombreELegido}}</strong>. <br/> Por el caso: <strong>{{caso}}</strong>. En {{numCuotas}} <span v-if="numCuotas==1">pago</span><span v-else>pagos</span> <span v-if="fecha!=null && fecha!=''">a partir de {{fechaLatam(fecha)}}</span> </p>
 			</div>
 			
@@ -203,30 +223,19 @@
 	</div>
 </template>
 
-<style scoped>
-	p{
-		margin-bottom: .8rem;
-	}
-	#resultadoProcesos small{
-		font-size: 0.75em;
-	}
-	#resultadoProcesos div:hover{
-		/* cursor: pointer; */
-		background-color: whitesmoke;
-	}
-	
-</style>
-
 <script>
+import Buscador from '@/components/Buscador.vue'
+
 var modalCrear, modalVarios, divCli, modalRegistrado;
 export default {
 	name: 'Procesos',
+	components:{Buscador},
 	data(){
 		return {
-			fecha: null, clienteBuscar:'44475064', dniElegido:'', nombreELegido:'', cliElegido:'',
+			fecha: null, clienteBuscar:'', dniElegido:'', nombreELegido:'', cliElegido:'',
 			elegidos:[], numCuotas: null, plazos:null, chkDocumentos:false, precio:0,
 			caso:'', antecedentes:'', codigo:null, archivo:'', documentos:[],
-			procesos:[], cuotas:[], verExtras:false, verFechas:false, fechas:[]
+			procesos:[], cuotas:[], verExtras:false, verFechas:false, fechas:[], codigo:''
 		}
 	},
 	mounted(){
@@ -298,6 +307,7 @@ export default {
 			var divPagos = document.getElementById('divDetallePagos');
 			if(tip =='1'){
 				this.numCuotas=1;
+				this.plazos = 0
 				divPagos.classList.add('d-none')
 				this.verExtras = false;
 			}else if(tip =='2'){
@@ -315,7 +325,7 @@ export default {
 			if(this.evaluarCampos()){
 				if(this.chkDocumentos)
 					if( document.getElementById("formFile").files.length>=1 ){
-						let subida = await this.subirANube()
+						await this.subirANube()
 					}
 
 					this.mandarDatos(nombreSubida, nombreRuta);
@@ -330,7 +340,7 @@ export default {
 				} */
 			}
 		},
-		subirANube(){
+		async subirANube(){
 			var that = this;
 			this.archivo = this.$refs.archivoFile.files[0];
 			if(document.getElementById("formFile").files.length>0){
@@ -339,7 +349,7 @@ export default {
 				let formData = new FormData();
 				formData.append('archivo', this.archivo);
 				formData.append('ruta', this.rutaDocs ); 
-				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+				await axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
 					headers: {
 						'Content-Type' : 'multipart/form-data'
 					}
@@ -357,6 +367,7 @@ export default {
 						});
 					}
 					that.limpiarInput()
+					return true;
 
 				}).catch(function(ero){
 					console.log( 'err2' + ero );
@@ -375,13 +386,14 @@ export default {
 			axios.post(this.nombreApi+'/insertarProceso.php', {
 				cliElegido: this.cliElegido, 
 				caso: this.caso,
+				codigo: this.codigo,
 				antecedentes: this.antecedentes,
 				floPagos: document.getElementById('floPagos').value,
 				precio: this.precio,
 				numCuotas:this.numCuotas,
 				plazos: this.plazos,
 				fecha: this.fecha,
-				idUsuario: localStorage.idUsuario,
+				idUsuario: sessionStorage.getItem('idUsuario'),
 				nombreSubida, nombreRuta,
 				documentos: this.documentos,
 				fechas: this.fechas
@@ -423,43 +435,75 @@ export default {
 			return moment(fe).fromNow();
 		},
 		expandirFechas(){
-			if(this.precio==0){
+			if(this.precio==0 || this.precio ==''){
 				this.$emit('mostrarToastMal', 'El precio debe ser diferente de 0'); return false;
-			}else if(this.numCuotas=='' || this.numCuotas==0 ){
+			}
+			if(this.numCuotas=='' || this.numCuotas==0 ){
 				this.$emit('mostrarToastMal', 'Debe ingresar un número de cuotas mayor a 1'); return false;
 			}
-			else if(this.plazos== null || this.plazos=='' || this.plazos=='Plazos' ){
+			if(this.plazos== null || this.plazos=='' || this.plazos=='Plazos' ){
 				this.$emit('mostrarToastMal', 'Especifique un tipo de plazo: diario, mensual, etc'); return false;
-			}else if(this.fecha==null || this.fecha==''){
-				this.$emit('mostrarToastMal', 'Especifique una fecha inicial'); return false;
-			}else{
-				this.verFechas=true;
-				this.fechas=[];
-				let queFecha = this.fecha;
-				let queMonto = parseFloat(this.precio /this.numCuotas).toFixed(2);
-				for(let i=0; i<this.numCuotas;i++){
-					this.fechas.push({
-						fecha: moment(queFecha).format('YYYY-MM-DD'),
-						fechaLat: moment(queFecha).format('DD/MM/YYYY'),
-						monto: queMonto
-					})
-					switch(this.plazos){
-						case '1': queFecha = moment(queFecha).add(1, 'd' ); break;
-						case '2': queFecha = moment(queFecha).add(7, 'd' ); break;
-						case '3': queFecha = moment(queFecha).add(1, 'M' ); break;
-						case '4': queFecha = moment(queFecha).add(1, 'y' ); break;
-					}
-					//
-
-				}
 			}
+			 if(this.fecha==null || this.fecha==''){
+				this.$emit('mostrarToastMal', 'Especifique una fecha inicial'); return false;
+			}
+			
+			this.verFechas=true;
+			this.fechas=[];
+			let queFecha = this.fecha;
+			let queMonto = parseFloat(this.precio /this.numCuotas).toFixed(2);
+			for(let i=0; i<this.numCuotas;i++){
+				this.fechas.push({
+					fecha: moment(queFecha).format('YYYY-MM-DD'),
+					fechaLat: moment(queFecha).format('DD/MM/YYYY'),
+					monto: queMonto
+				})
+				switch(this.plazos){
+					case '1': queFecha = moment(queFecha).add(1, 'd' ); break;
+					case '2': queFecha = moment(queFecha).add(7, 'd' ); break;
+					case '3': queFecha = moment(queFecha).add(1, 'M' ); break;
+					case '4': queFecha = moment(queFecha).add(1, 'y' ); break;
+				}
+				//
+
+			}
+			return true;
+		
+		},
+		consultar(texto){
+			console.log( 'debo Buscar' );
+			axios.post( this.nombreApi + '/buscarProcesos.php', {texto})
+			.then((response)=>{
+				this.procesos = response.data;
+				this.$refs.compBuscador.cerrarModal();
+				
+			})
+			.catch((error)=>{ console.log( error );});
 		},
 		cambiarFechaInicial(){
 			if(this.verFechas){
 				this.expandirFechas()
 			}
 		},
+		queCodigo(cod){
+			if(cod) return cod
+			else return '-'
+		}
 
 	},
 }
 </script>
+
+<style scoped>
+	p{
+		margin-bottom: .8rem;
+	}
+	#resultadoProcesos small{
+		font-size: 0.75em;
+	}
+	#resultadoProcesos div:hover{
+		/* cursor: pointer; */
+		background-color: whitesmoke;
+	}
+	
+</style>

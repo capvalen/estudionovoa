@@ -1,22 +1,37 @@
 <template>
 	<div >
+		<div class="row ms-2">
+			<div class="col">
+				<nav style="--bs-breadcrumb-divider: '\F285';" aria-label="breadcrumb">
+					<ol class="breadcrumb">
+						<li class="breadcrumb-item"><a href="/"><i class="bi bi-house"></i></a></li>
+						<li class="breadcrumb-item"><a class="text-decoration-none" href="/procesos">Procesos</a></li>
+						<li class="breadcrumb-item active" aria-current="page">Detalles</li>
+					</ol>
+				</nav>
+			</div>
+		</div>
 		<div v-if="!pagos">
 			<div class="bloqueCaso border-bottom">
 				<div class="p-4 pb-2">
 					<h5 class="text-capitalize display-6">{{titulo}} <small class="text-primary" @click="verPagos()" style="font-size: .7em; cursor:pointer;"><i class="bi bi-arrow-right-circle"></i> Ver pagos</small></h5>
+					<h5>Código: <span class="text-success">{{codigo}}</span> <small class="btn btn-outline-success border px-2 py-1" @click="sustituto = codigo" data-bs-toggle="modal" data-bs-target="#modalEditarCodigo"><i class="bi bi-pencil-square"></i></small></h5>
 					<h5>Estado: <span class="text-primary">{{estadoProceso}}</span> <small class="btn btn-outline-primary border px-2 py-1" @click="abrirModalEstado()"><i class="bi bi-broadcast-pin"></i> Cambiar estado</small></h5>
+					<hr>
 					<p class="mb-0"><strong>Antecedentes</strong></p>
 					<div class="my-2" v-html="casoPrevio"></div>
-					<p class="mb-0"><strong>Documentos adjuntos</strong></p>
-
-					<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
-						<li v-for="(documento, indice) in documentos" :key="documento.id" class="list-group-item d-flex justify-content-between align-items-start">
-							<div class="ms-2 me-auto"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+documento.nombreRuta"> <strong>{{documento.nombreSubida}}</strong></a></div>
-							<a href="#!" v-if="nivel==1" @click="sustituir(indice)"><span class="badge bg-success rounded-pill mx-2"><i class="bi bi-sd-card"></i></span></a>
-							<a href="#!" v-if="nivel==1" @click="borrarDocumento(indice)"><span class="badge bg-danger rounded-pill"><i class="bi bi-x"></i></span></a>
-						</li>
-					</ul>
-					<p class="text-muted ">Registrado: {{fechaLatam(fechaInicial)}} por <span class="text-capitalize">{{usuario}}</span>.</p>
+					<div v-if="documentos.length>0">
+						<p class="mb-0"><strong>Documentos adjuntos</strong></p>
+						<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
+							<li v-for="(documento, indice) in documentos" :key="documento.id" class="list-group-item d-flex justify-content-between align-items-start">
+								<div class="ms-2 me-auto "><span><i class="bi bi-paperclip"></i></span> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+documento.nombreRuta"> <strong>{{documento.nombreSubida}}</strong></a></div>
+								<a href="#!" v-if="nivel==1" @click="sustituir(indice)" title="Sustituir archivo"><button class="btn btn-outline-success btn-sm rounded-pill mx-2"><i class="bi bi-sd-card"></i></button></a>
+								<a href="#!" v-if="nivel==1" @click="borrarDocumento(indice)" title="Eliminar adjunto"><button class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-x"></i></button></a>
+							</li>
+						</ul>
+					</div>
+					<div v-else><i class="bi bi-file-x"></i><small> No hay documentos adjuntos</small></div>
+					<p class="text-muted"><small>Registrado: {{fechaLatam(fechaInicial)}} por <span class="text-capitalize">{{usuario}}</span>.</small></p>
 				</div>
 			</div>
 		
@@ -27,13 +42,13 @@
 					<div class="my-2" v-html="iteracion.contenido.replace(/(?:\r\n|\r|\n)/g, '<br />')"></div>
 						<p v-if="iteracion.link!=''"><i class="bi bi-paperclip"></i>Adjunto: <a class="text-decoration-none" :href="'/documentos/'+iteracion.link"> <strong>{{iteracion.adjunto}}</strong></a></p>
 			
-						<p class="text-muted ">Registrado: {{fechaLatam(iteracion.fecha)}} por <span class="text-capitalize">{{iteracion.nomUsuario}}</span></p>
+						<p class="text-muted "><small>Registrado: {{fechaLatam(iteracion.fecha)}} por <span class="text-capitalize">{{iteracion.nomUsuario}}</span></small></p>
 
 						<ul class="list-group row col-12 col-md-8 mb-3 ms-3">
 							<li v-for="(archivos, indice) in iteracion.archivos" class="list-group-item d-flex justify-content-between align-items-start">
 								<div class="ms-2 me-auto"><i class="bi bi-paperclip"></i> Adjunto: <a class="text-decoration-none" :href="'/documentos/'+archivos.nombreRuta"> <strong>{{archivos.nombreSubida}}</strong></a></div>
 								<a href="#!" v-if="nivel==3" @click="sustituirIteracion(indiceInt, indice, iteracion.id)"><span class="badge bg-warning rounded-pill mx-2"><i class="bi bi-sd-card"></i></span></a>
-								<a href="#!" v-if="nivel==1" @click="borrarDocumentoInteracion(indiceInt, indice, iteracion.id)"><span class="badge bg-danger rounded-pill"><i class="bi bi-x"></i></span></a>
+								<a href="#!" v-if="nivel==1" @click="borrarDocumentoInteracion(indiceInt, indice, iteracion.id)" title="Eliminar adjunto"><button class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-x"></i></button></a>
 							</li>
 						</ul>
 				
@@ -88,9 +103,11 @@
 						  <label for="formFile" class="form-label">Adjuntar archivo</label>
 						  <input class="form-control" type="file" id="txtArchivo" ref="archivo" @change="habilitarDoc()">
 						</div> -->
+						<p class="mb-0"><small>Documentación adjunta</small></p>
 						<div class="input-group mb-3">
-							<input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
-							<button class="btn btn-outline-secondary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+							<input type="file" ref="archivoFile" id="formFile" class="form-control" placeholder=" " accept=".pdf, .docx, application/msword, .xlsx, application/vnd.ms-excel, .jpg, .png, .mp3, .mpeg, .mp4" >
+							<button class="btn btn-outline-primary" type="button" id="button-addon1" @click="subirANube()"><i class="bi bi-file-earmark-plus"></i> Adjuntar</button>
+							<button class="btn btn-outline-secondary" type="button" id="button-addon2" @click="limpiarInput()"><i class="bi bi-eraser"></i> Limpiar</button>
 						</div>
 
 						<div v-if="documentosInt.length>=1">
@@ -111,7 +128,7 @@
 				<div class="modal-content">
 					<div class="modal-body">
 						<button type="button" class="btn-close float-end" data-bs-dismiss="modal" aria-label="Close"></button>
-						<h5 class="modal-title mb-2">Nueva interacción</h5>
+						<h5 class="modal-title mb-2">Nuevo estado</h5>
 						<p>Seleccione el nuevo estado que va a pasar el proceso:</p>
 						<div class="form-floating">
 						  <select class="form-select" id="floEstado" aria-label="Estados">
@@ -126,8 +143,6 @@
 						<div class="text-end mt-2">
 							<button class="btn btn-outline-success mx-1" @click="cambiarEstado()"><i class="bi bi-broadcast"></i> Cambiar estado</button>
 						</div>
-
-						
 					</div>
 				</div>
 			</div>
@@ -147,6 +162,24 @@
 					
 						<div class="text-end mt-2">
 							<button class="btn btn-outline-success mx-1" @click="cambiarArchivo()"><i class="bi bi-sd-card"></i> Intercambiar archivo</button>
+						</div>
+
+						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="modalEditarCodigo" tabindex="-1">
+			<div class="modal-dialog modal-dialog-centered modal-sm">
+				<div class="modal-content">
+					<div class="modal-body">
+						<button type="button" class="btn-close float-end" data-bs-dismiss="modal" aria-label="Close"></button>
+						<h5 class="modal-title mb-2">Editar código</h5>
+						<p>Puede cambiar el código del caso</p>
+						<input type="text" class="form-control text-center" id="codigoNuevo" v-model="sustituto">
+					
+						<div class="text-end mt-2">
+							<button class="btn btn-outline-success mx-1" @click="cambiarCodigo()" data-bs-dismiss="modal"><i class="bi bi-sd-card"></i> Cambiar código</button>
 						</div>
 
 						
@@ -186,7 +219,7 @@ export default {
 	data(){ return {
 		titulo: '', casoPrevio:'', ruta:'', documento:'', fechaInicial:'', usuario:'',
 		pagos:false, todosPagos:[], iteraciones:[],
-		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[], documentosInt:[], nivel:3, sustituto:[], queIndice:-1, queIteracion:-1, queId:-1
+		nAsunto:'', nContenido:'', nArchivo:'', estadoProceso:'', documentos:[], documentosInt:[], nivel:3, sustituto:[], queIndice:-1, queIteracion:-1, queId:-1, codigo:''
 		}
 	},
 	mounted(){
@@ -195,13 +228,14 @@ export default {
 		modalNuevoEstado = new bootstrap.Modal(document.getElementById('modalNuevoEstado'))
 		modalSustituir = new bootstrap.Modal(document.getElementById('modalSustituir'))
 		modalSustituirIteracion = new bootstrap.Modal(document.getElementById('modalSustituirIteracion'))
-		this.nivel = localStorage.getItem('nivel');
+		this.nivel = sessionStorage.getItem('nivel');
 		//Muestra el ID por Router
 		//console.log( this.$route.params.id );
 		axios.post(this.nombreApi + '/solicitarCabeceraProceso.php', { id: this.$route.params.id})
 		.then((response)=>{ console.log( response.data );
 			let datos = response.data
 			this.titulo = datos.caso;
+			this.codigo = datos.codigo;
 			this.casoPrevio = datos.antecedentes.replace(/(?:\r\n|\r|\n)/g, '<br />');
 			
 			this.documentos = JSON.parse(datos.documento);
@@ -263,16 +297,18 @@ export default {
 			else if(this.nContenido==''){ this.$emit('mostrarToastMal', 'El contenido está vacío'); return false; }
 			else{ return true; }
 		},
-		registrarIteracion(){
+		async registrarIteracion(){
 			if( this.evaluarCampos() ){
+				if( document.getElementById("formFile").files.length>=1 ){
+					await this.subirANube()
+				}
 				this.mandarDatos();
 			}
 		},
 		mandarDatos(){
-			
 			axios.post(this.nombreApi + '/insertarIteracion.php', {
 				idProceso: this.$route.params.id,
-				idUsuario: localStorage.idUsuario,
+				idUsuario: sessionStorage.getItem('idUsuario'),
 				titulo: this.nAsunto,
 				contenido: this.nContenido,
 				archivos: JSON.stringify(this.documentosInt),
@@ -287,7 +323,7 @@ export default {
 						fecha: moment(),
 						titulo: this.nAsunto,
 						contenido: this.nContenido,
-						nomUsuario: localStorage.nombreUsuario,
+						nomUsuario: sessionStorage.getItem('nombreUsuario'),
 						link: '',
 						adjunto:'',
 						archivos: this.documentosInt
@@ -317,8 +353,17 @@ export default {
 				.catch((error)=>{ console.log( error );});
 			}
 		},
+		async cambiarCodigo(){
+			axios.post(this.nombreApi+'/actualizarCodigo.php',{ codigo: this.sustituto, id: this.$route.params.id,})
+			.then(response =>{
+				this.codigo = this.sustituto
+				this.$emit('mostrarToastBien', 'Código cambiado');
+			})
+		},
 		borrarDocumento(indice){
-			if(confirm(`¿Deseas eliminar el documento ${this.documentos[indice].nombreSubida}?`)){
+			alert('Desactivado temporalmente, no podrá eliminar los archivos hasta una nueva versión');
+			return false;
+			/* if(confirm(`¿Deseas eliminar el documento ${this.documentos[indice].nombreSubida}?`)){
 				const eliminar = this.documentos[indice].nombreRuta;
 				this.documentos.splice(indice,1);
 	
@@ -332,10 +377,12 @@ export default {
 						this.$emit('mostrarToastMal', 'Error borrando el documento');
 					}
 				})
-			}
+			} */
 		},
 		borrarDocumentoInteracion(indice, index, id){
-			if(confirm(`¿Deseas eliminar el documento ${this.iteraciones[indice].archivos[index].nombreSubida}?`)){
+			alert('Desactivado temporalmente, no podrá eliminar los archivos hasta una nueva versión');
+			return false;
+			/* if(confirm(`¿Deseas eliminar el documento ${this.iteraciones[indice].archivos[index].nombreSubida}?`)){
 				const eliminar = this.iteraciones[indice].archivos[index].nombreRuta;
 				this.iteraciones[indice].archivos.splice(index,1);
 
@@ -349,9 +396,9 @@ export default {
 						this.$emit('mostrarToastMal', 'Error borrando el documento');
 					}
 				})
-			}
+			} */
 		},
-		subirANube(){
+		async subirANube(){
 			var that = this;
 			this.archivo = this.$refs.archivoFile.files[0];
 			if(document.getElementById("formFile").files.length>0){
@@ -360,7 +407,7 @@ export default {
 				let formData = new FormData();
 				formData.append('archivo', this.archivo);
 				formData.append('ruta', this.rutaDocs );
-				axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
+				await axios.post(this.nombreApi+'/subidaAdjunto.php', formData, {
 					headers: {
 						'Content-Type' : 'multipart/form-data'
 					}
@@ -377,10 +424,12 @@ export default {
 							nombreRuta : response.data
 						});
 					}
-
+					that.limpiarInput()
+					return true;
 				}).catch(function(ero){
 					console.log( 'err2' + ero );
-					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto'); return false;
+					that.$emit('mostrarToastMal', 'Error subiendo el archivo adjunto');
+					return false;
 				})
 			}
 		},
@@ -486,6 +535,9 @@ export default {
 				modalSustituirIteracion.hide();
 			})
 		},
+		limpiarInput(){
+			document.getElementById('formFile').value = ''
+		},
 	}
 }
 </script>
@@ -494,4 +546,5 @@ export default {
     white-space: pre;
 }
 .bg-success{background-color:#2dc11b!important}
+hr{background-color: #264e75;}
 </style>
