@@ -312,7 +312,7 @@ export default {
 			let nombreSubida='', nombreRuta='';
 			
 			if(this.evaluarCampos()){
-						this.mandarDatos(nombreSubida, nombreRuta);
+					this.mandarDatos(nombreSubida, nombreRuta);
 				/* if(this.chkDocumentos){
 					if( document.getElementById("formFile").files.length==0 ){
 					}else{
